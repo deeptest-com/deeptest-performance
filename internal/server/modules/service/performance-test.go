@@ -33,7 +33,7 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 	for i := 1; i <= 10; i++ {
 		err = stream.Send(&proto.PerformanceExecReq{
 			ExecUuid: "UUID-123",
-			Title:    "任务 UUID-123",
+			Title:    "Server Task UUID-123",
 			Vus:      10,
 		})
 		if err == io.EOF {
@@ -47,12 +47,16 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 		if err == io.EOF {
 			break
 		}
-
 		if err != nil {
 			return
 		}
 
-		log.Printf("%s status: %s", res.Title, res.Status)
+		if res.Msg != "" {
+			log.Printf("%s", res.Msg)
+		} else {
+			log.Printf("%s: %s", res.Title, res.Status)
+		}
+
 	}
 
 	stream.CloseSend()

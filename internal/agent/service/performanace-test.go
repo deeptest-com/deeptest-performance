@@ -12,9 +12,7 @@ func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_Ex
 
 	for {
 		err := stream.Send(&proto.PerformanceExecResp{
-			Title:  "",
-			Status: "pass",
-			Result: "data",
+			Msg: "Other Msg From Agent",
 		})
 		if err != nil {
 			return err

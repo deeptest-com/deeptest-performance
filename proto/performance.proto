@@ -16,4 +16,7 @@ message PerformanceExecResp {
   string title = 1;
   string status = 2;
   string result = 3;
+
+
+  string msg = 4;
 }
