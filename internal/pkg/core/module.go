@@ -1,4 +1,4 @@
-package middleware
+package core
 
 import (
 	"github.com/kataras/iris/v12"

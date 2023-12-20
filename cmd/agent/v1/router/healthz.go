@@ -6,18 +6,14 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-type HealthzModule struct {
-	HealthzCtrl *handler.HealthCtrl `inject:""`
-}
-
-func NewHealthzModule() *HealthzModule {
-	return &HealthzModule{}
+type HealthModule struct {
+	HealthCtrl *handler.HealthCtrl `inject:""`
 }
 
 // Party
-func (m *HealthzModule) Party() middleware.WebModule {
+func (m *HealthModule) Party() middleware.WebModule {
 	handler := func(index iris.Party) {
-		index.Get("/", m.HealthzCtrl.Get).Name = "健康检查"
+		index.Get("/", m.HealthCtrl.Get).Name = "健康检查"
 	}
-	return middleware.NewModule("/healthz", handler)
+	return middleware.NewModule("/health", handler)
 }

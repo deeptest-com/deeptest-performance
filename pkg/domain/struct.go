@@ -1,10 +1,5 @@
 package _domain
 
-import (
-	serverConsts "github.com/aaronchen2k/deeptest/internal/server/consts"
-	stringUtils "github.com/aaronchen2k/deeptest/pkg/lib/string"
-)
-
 type Model struct {
 	Id        uint   `json:"id"`
 	UpdatedAt string `json:"updatedAt"`
@@ -13,18 +8,6 @@ type Model struct {
 
 type ReqId struct {
 	Id uint `json:"id" param:"id"`
-}
-
-type PaginateReq struct {
-	Page     int    `json:"page"`
-	PageSize int    `json:"pageSize"`
-	Field    string `json:"field"`
-	Order    string `json:"order"`
-}
-
-func (r *PaginateReq) ConvertParams() {
-	r.Field = stringUtils.SnakeCase(r.Field)
-	r.Order = serverConsts.SortMap[r.Order]
 }
 
 type Response struct {

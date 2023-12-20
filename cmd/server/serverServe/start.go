@@ -117,5 +117,4 @@ func (webServer *WebServer) InjectModule() {
 	}
 
 	webServer.AddModule(indexModule.ApiParty())
-	webServer.AddModule(indexModule.MockParty())
 }

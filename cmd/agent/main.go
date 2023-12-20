@@ -5,9 +5,6 @@ import (
 	"github.com/aaronchen2k/deeptest/cmd/agent/serve"
 	"github.com/aaronchen2k/deeptest/cmd/agent/v1"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
-	"github.com/aaronchen2k/deeptest/internal/pkg/core/cron"
-	"github.com/aaronchen2k/deeptest/internal/pkg/helper/websocket"
-	"github.com/aaronchen2k/deeptest/internal/server/core/dao"
 	"github.com/aaronchen2k/deeptest/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/lib/log"
 	"github.com/facebookgo/inject"
@@ -35,8 +32,6 @@ func main() {
 	flagSet.BoolVar(&_consts.Verbose, "verbose", false, "")
 	flagSet.Parse(os.Args[1:])
 
-	websocketHelper.InitMq()
-
 	agent := agentServe.Init()
 	if agent == nil {
 		return
@@ -53,14 +48,9 @@ func injectModule(ws *agentServe.AgentServer) {
 	var g inject.Graph
 	g.Logger = logrus.StandardLogger()
 
-	cron := cron.NewServerCron()
-	cron.Init()
 	indexModule := v1.NewIndexModule()
 
-	// inject objects
 	if err := g.Provide(
-		&inject.Object{Value: dao.GetDB()},
-		&inject.Object{Value: cron},
 		&inject.Object{Value: indexModule},
 	); err != nil {
 		logrus.Fatalf("provide usecase objects to the Graph: %v", err)
