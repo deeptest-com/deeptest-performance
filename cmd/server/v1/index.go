@@ -8,7 +8,8 @@ import (
 )
 
 type IndexModule struct {
-	PlanModule *router.PlanModule `inject:""`
+	PlanModule            *router.PlanModule            `inject:""`
+	PerformanceTestModule *router.PerformanceTestModule `inject:""`
 }
 
 func NewIndexModule() *IndexModule {
@@ -19,6 +20,7 @@ func (m *IndexModule) ApiParty() core.WebModule {
 	handler := func(v1 iris.Party) {}
 	modules := []core.WebModule{
 		m.PlanModule.Party(),
+		m.PerformanceTestModule.Party(),
 	}
 
 	return core.NewModule(consts.ApiPathServer, handler, modules...)

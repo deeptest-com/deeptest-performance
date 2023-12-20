@@ -4,8 +4,8 @@ import (
 	"flag"
 	"github.com/aaronchen2k/deeptest/cmd/agent/serve"
 	"github.com/aaronchen2k/deeptest/cmd/agent/v1"
+	agentService "github.com/aaronchen2k/deeptest/internal/agent/service"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
-	"github.com/aaronchen2k/deeptest/internal/server/modules/service"
 	"github.com/aaronchen2k/deeptest/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/lib/log"
 	"github.com/aaronchen2k/deeptest/proto"
@@ -73,7 +73,7 @@ func injectModule(ws *agentServe.AgentServer) {
 
 func startGrpc() {
 	server := grpc.NewServer()
-	proto.RegisterStreamServiceServer(server, &service.StreamServices{})
+	proto.RegisterPerformanceServiceServer(server, &agentService.PerformanceTestServices{})
 
 	lis, err := net.Listen("tcp", "127.0.0.1:9528")
 	if err != nil {

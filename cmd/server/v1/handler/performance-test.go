@@ -6,18 +6,16 @@ import (
 	"github.com/kataras/iris/v12"
 )
 
-type PlanCtrl struct {
-	PlanService *service.PlanService `inject:""`
+type PerformanceTestCtrl struct {
+	PerformanceTestServices *service.PerformanceTestServices `inject:""`
 }
 
-func (c *PlanCtrl) Get(ctx iris.Context) {
-	if c.PlanService.StreamClient == nil {
-		c.PlanService.Connect(ctx)
+func (c *PerformanceTestCtrl) Exec(ctx iris.Context) {
+	if c.PerformanceTestServices.PerformanceServiceClient == nil {
+		c.PerformanceTestServices.Connect(ctx)
 	}
 
-	//c.PlanService.OrderList(ctx)
-	//c.PlanService.UploadImage(ctx)
-	c.PlanService.SumData(ctx)
+	c.PerformanceTestServices.Exec(ctx)
 
 	data := iris.Map{}
 	ctx.JSON(_domain.Response{Code: _domain.NoErr.Code, Data: data, Msg: _domain.NoErr.Msg})

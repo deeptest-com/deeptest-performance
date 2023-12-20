@@ -1,0 +1,19 @@
+syntax = "proto3";
+package proto;
+option go_package = "/proto";
+
+service PerformanceService {
+  rpc Exec(stream PerformanceExecReq) returns (stream PerformanceExecResp){};
+}
+
+message PerformanceExecReq {
+  string execUuid = 1;
+  string title = 2;
+  int32 vus = 3;
+}
+
+message PerformanceExecResp {
+  string title = 1;
+  string status = 2;
+  string result = 3;
+}

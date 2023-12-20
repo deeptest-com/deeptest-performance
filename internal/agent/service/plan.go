@@ -1,4 +1,4 @@
-package service
+package agentService
 
 import (
 	"fmt"
@@ -47,16 +47,20 @@ func (services *StreamServices) UploadFile(stream proto.StreamService_UploadFile
 
 func (services *StreamServices) SumData(stream proto.StreamService_SumDataServer) error {
 	i := 0
+
 	for {
 		err := stream.Send(&proto.StreamSumData{Number: int32(i)})
 		if err != nil {
 			return err
 		}
+
 		res, err := stream.Recv()
 		if err == io.EOF {
 			return nil
 		}
+
 		log.Printf("res:%d,i:%d,sum:%d\r\n", res.Number, i, int32(i)+res.Number)
+
 		i++
 	}
 }
