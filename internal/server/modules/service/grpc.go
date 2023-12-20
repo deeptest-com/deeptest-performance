@@ -26,6 +26,7 @@ func (services *StreamServices) OrderList(params *proto.OrderSearchParams, strea
 			return err
 		}
 	}
+
 	return nil
 }
 
