@@ -14,9 +14,11 @@ func (services *StreamServices) OrderList(params *proto.OrderSearchParams, strea
 	for i := 0; i <= 10; i++ {
 		order := proto.Order{
 			Id:      int32(i),
+			Title:   "订单名称",
 			OrderSn: time.Now().Format("20060102150405") + "order_sn",
 			Date:    time.Now().Format("2006-01-02 15:04:05"),
 		}
+
 		err := stream.Send(&proto.StreamOrderList{
 			Order: &order,
 		})

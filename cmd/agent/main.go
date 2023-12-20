@@ -37,6 +37,9 @@ func main() {
 	flagSet.BoolVar(&_consts.Verbose, "verbose", false, "")
 	flagSet.Parse(os.Args[1:])
 
+	// grpc service
+	startGrpc()
+
 	// start iris service
 	agent := agentServe.Init()
 	if agent == nil {
@@ -45,9 +48,6 @@ func main() {
 
 	injectModule(agent)
 	agent.Start()
-
-	// grpc service
-	startGrpc()
 
 	_logUtils.Infof("start agent")
 }

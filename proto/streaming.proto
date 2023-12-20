@@ -3,14 +3,15 @@ package proto;
 option go_package = "/proto";
 
 service StreamService {
-  rpc OrderList(OrderSearchParams) returns (stream StreamOrderList){}; //服务端流式
-  rpc UploadFile(stream StreamImageList) returns (uploadResponse){}; //客户端流式
-  rpc SumData(stream StreamSumData) returns (stream StreamSumData){}; //双向流式
+  rpc OrderList(OrderSearchParams) returns (stream StreamOrderList){}; // 服务端流式
+  rpc UploadFile(stream StreamImageList) returns (uploadResponse){}; // 客户端流式
+  rpc SumData(stream StreamSumData) returns (stream StreamSumData){}; // 双向流式
 }
 message Order {
   int32 id = 1;
-  string orderSn = 2;
-  string date = 3;
+  string title = 2;
+  string orderSn = 3;
+  string date = 4;
 }
 message StreamOrderList{
   Order order = 1;
