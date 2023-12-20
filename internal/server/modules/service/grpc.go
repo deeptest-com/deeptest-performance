@@ -1,0 +1,59 @@
+package service
+
+import (
+	"fmt"
+	"github.com/aaronchen2k/deeptest/proto"
+	"io"
+	"log"
+	"time"
+)
+
+type StreamServices struct{}
+
+func (services *StreamServices) OrderList(params *proto.OrderSearchParams, stream proto.StreamService_OrderListServer) error {
+	for i := 0; i <= 10; i++ {
+		order := proto.Order{
+			Id:      int32(i),
+			OrderSn: time.Now().Format("20060102150405") + "order_sn",
+			Date:    time.Now().Format("2006-01-02 15:04:05"),
+		}
+		err := stream.Send(&proto.StreamOrderList{
+			Order: &order,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (services *StreamServices) UploadFile(stream proto.StreamService_UploadFileServer) error {
+	for {
+		res, err := stream.Recv()
+		//接收消息结束，发送结果，并关闭
+		if err == io.EOF {
+			return stream.SendAndClose(&proto.UploadResponse{})
+		}
+		if err != nil {
+			return err
+		}
+		fmt.Println(res)
+	}
+	return nil
+}
+
+func (services *StreamServices) SumData(stream proto.StreamService_SumDataServer) error {
+	i := 0
+	for {
+		err := stream.Send(&proto.StreamSumData{Number: int32(i)})
+		if err != nil {
+			return err
+		}
+		res, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		log.Printf("res:%d,i:%d,sum:%d\r\n", res.Number, i, int32(i)+res.Number)
+		i++
+	}
+}

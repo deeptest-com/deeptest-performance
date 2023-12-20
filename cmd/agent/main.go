@@ -5,11 +5,16 @@ import (
 	"github.com/aaronchen2k/deeptest/cmd/agent/serve"
 	"github.com/aaronchen2k/deeptest/cmd/agent/v1"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
+	"github.com/aaronchen2k/deeptest/internal/server/modules/service"
 	"github.com/aaronchen2k/deeptest/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/lib/log"
+	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/facebookgo/inject"
 	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 	"os"
 )
 
@@ -32,14 +37,17 @@ func main() {
 	flagSet.BoolVar(&_consts.Verbose, "verbose", false, "")
 	flagSet.Parse(os.Args[1:])
 
+	// start iris service
 	agent := agentServe.Init()
 	if agent == nil {
 		return
 	}
 
 	injectModule(agent)
-
 	agent.Start()
+
+	// grpc service
+	startGrpc()
 
 	_logUtils.Infof("start agent")
 }
@@ -61,6 +69,17 @@ func injectModule(ws *agentServe.AgentServer) {
 	}
 
 	ws.AddModule(indexModule.Party())
+}
+
+func startGrpc() {
+	server := grpc.NewServer()
+	proto.RegisterStreamServiceServer(server, &service.StreamServices{})
+
+	lis, err := net.Listen("tcp", "127.0.0.1:9528")
+	if err != nil {
+		log.Fatalf("grpc net.Listen err: %v", err)
+	}
+	server.Serve(lis)
 }
 
 func init() {
