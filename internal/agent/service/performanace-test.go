@@ -1,46 +1,69 @@
 package agentService
 
 import (
+	"context"
+	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
+	"time"
 )
 
-type PerformanceTestServices struct{}
+type PerformanceTestServices struct {
+	VuService *VuService `inject:""`
+}
 
 func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
 	go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
 
-	res, err := stream.Recv()
+	plan, err := stream.Recv()
 	if err == io.EOF {
 		err = nil
 		return
 	}
-	if res == nil {
+	if plan == nil {
 		return
 	}
 
 	// simulate execution
-	i := 0
-	for true {
-		if i > 2 {
-			break
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	for i := int32(1); i <= plan.Vus; i++ {
+		task := domain.Task{
+			Uuid: plan.Uuid,
+			Vus:  int(plan.Vus),
+			Dur:  int(plan.Vus),
+			VuNo: int(i),
 		}
+		vCtx := context.WithValue(ctx, "task", task)
 
-		result := proto.PerformanceExecResult{
-			Uuid:   res.Uuid,
-			Status: "pass",
-		}
-
-		//mqData := mq.MqMsg{
-		//	Event:  "result",
-		//	Result: result,
-		//}
-		//mq.PubAgentMsg(mqData)
-		err = stream.Send(&result)
-
-		i++
+		go s.VuService.Exec(vCtx)
 	}
+
+	time.Sleep(10 * time.Second)
+	cancel()
+
+	//i := 0
+	//for true {
+	//	if i > 2 {
+	//		break
+	//	}
+	//
+	//	result := proto.PerformanceExecResult{
+	//		Uuid:   res.Uuid,
+	//		Status: "pass",
+	//	}
+	//
+	//	//mqData := mq.MqMsg{
+	//	//	Event:  "result",
+	//	//	Result: result,
+	//	//}
+	//	//mq.PubAgentMsg(mqData)
+	//	err = stream.Send(&result)
+	//
+	//	i++
+	//}
 
 	mqData := mq.MqMsg{
 		Event: "exit",
