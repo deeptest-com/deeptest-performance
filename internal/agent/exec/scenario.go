@@ -32,10 +32,11 @@ func ExecScenario(scenario domain.Scenario, valCtx context.Context, stream *prot
 		(*stream).Send(&result)
 
 		// 每个场景处理器完成后，检测是否有终止执行的信号
-
 		select {
 		case <-valCtx.Done():
 			fmt.Println("stop", task.VuNo)
+
+			// 中止执行该场景后续处理器
 			return
 
 		default:
