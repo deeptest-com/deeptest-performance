@@ -2,6 +2,7 @@ package agentService
 
 import (
 	"context"
+	"github.com/aaronchen2k/deeptest/internal/agent/exec"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
@@ -10,7 +11,6 @@ import (
 )
 
 type PerformanceTestServices struct {
-	VuService *VuService `inject:""`
 }
 
 func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
@@ -38,32 +38,11 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 		}
 		vCtx := context.WithValue(ctx, "task", task)
 
-		go s.VuService.Exec(vCtx)
+		go exec.ExecTask(vCtx, &stream)
 	}
 
 	time.Sleep(10 * time.Second)
 	cancel()
-
-	//i := 0
-	//for true {
-	//	if i > 2 {
-	//		break
-	//	}
-	//
-	//	result := proto.PerformanceExecResult{
-	//		Uuid:   res.Uuid,
-	//		Status: "pass",
-	//	}
-	//
-	//	//mqData := mq.MqMsg{
-	//	//	Event:  "result",
-	//	//	Result: result,
-	//	//}
-	//	//mq.PubAgentMsg(mqData)
-	//	err = stream.Send(&result)
-	//
-	//	i++
-	//}
 
 	mqData := mq.MqMsg{
 		Event: "exit",

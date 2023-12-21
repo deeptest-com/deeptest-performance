@@ -34,9 +34,9 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 	go mq.SubServerMsg(s.DealwithResult)
 
 	err = stream.Send(&proto.PerformanceExecReq{
-		Uuid:  "UUID-123",
+		Uuid:  "UUID123",
 		Title: "Performance Testing Task UUID-123",
-		Vus:   10,
+		Vus:   3,
 	})
 	if err != nil {
 		return

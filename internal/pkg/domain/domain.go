@@ -5,7 +5,14 @@ type Task struct {
 	Vus  int    `json:"vus,omitempty"`
 	Dur  int    `json:"dur,omitempty"`
 
-	VuNo int `json:"vuNo,omitempty"`
+	VuNo     int      `json:"vuNo,omitempty"`
+	Scenario Scenario `json:"scenario,omitempty"`
+}
+
+type Scenario struct {
+	Name       string   `json:"name"`
+	Processors []string `json:"processors"`
+	Dur        int      `json:"dur,omitempty"`
 }
 
 type Metrics struct {
