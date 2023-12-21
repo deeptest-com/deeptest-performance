@@ -3,20 +3,21 @@ package proto;
 option go_package = "/proto";
 
 service PerformanceService {
-  rpc Exec(stream PerformanceExecReq) returns (stream PerformanceExecResp){};
+  rpc Exec(stream PerformanceExecReq) returns (stream PerformanceExecResult){};
 }
 
 message PerformanceExecReq {
-  string execUuid = 1;
+  string uuid = 1;
   string title = 2;
   int32 vus = 3;
+  int32 dur = 4;
 }
 
-message PerformanceExecResp {
-  string title = 1;
-  string status = 2;
-  string result = 3;
+message PerformanceExecResult {
+  string uuid = 1;
+  int32 vuId = 2;
 
-
-  string msg = 4;
+  string status = 3;
+  int32 duration = 4;
+  string msg = 5;
 }

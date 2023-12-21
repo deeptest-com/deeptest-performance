@@ -6,6 +6,7 @@ import (
 	"github.com/aaronchen2k/deeptest/cmd/agent/v1"
 	agentService "github.com/aaronchen2k/deeptest/internal/agent/service"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
+	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/lib/log"
 	"github.com/aaronchen2k/deeptest/proto"
@@ -39,6 +40,7 @@ func main() {
 
 	// grpc service
 	startGrpc()
+	mq.InitMq()
 
 	// start iris service
 	agent := agentServe.Init()

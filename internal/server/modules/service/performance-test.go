@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/kataras/iris/v12"
 	"google.golang.org/grpc"
@@ -30,11 +31,13 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 		return
 	}
 
+	go mq.SubMsg(s.DealwithResult)
+
 	for i := 1; i <= 10; i++ {
 		err = stream.Send(&proto.PerformanceExecReq{
-			ExecUuid: "UUID-123",
-			Title:    "Performance Testing Task UUID-123",
-			Vus:      10,
+			Uuid:  "UUID-123",
+			Title: "Performance Testing Task UUID-123",
+			Vus:   10,
 		})
 		if err == io.EOF {
 			break
@@ -51,15 +54,26 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 			return
 		}
 
-		if res.Msg != "" {
-			log.Printf("%s", res.Msg)
-		} else {
-			log.Printf("%s: %s", res.Title, res.Status)
+		mqData := mq.MqMsg{
+			Event:  "result",
+			Result: *res,
 		}
-
+		mq.PubMsg(mqData)
 	}
 
 	stream.CloseSend()
+
+	return
+}
+
+func (s *PerformanceTestServices) DealwithResult(mqMsg mq.MqMsg) (err error) {
+	result := mqMsg.Result
+
+	if result.Msg != "" {
+		log.Printf("Msg: %s", result.Msg)
+	} else {
+		log.Printf("Result %s: %s", result.Uuid, result.Status)
+	}
 
 	return
 }

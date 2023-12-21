@@ -1,18 +1,19 @@
 package agentService
 
 import (
+	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
 )
 
 type PerformanceTestServices struct{}
 
-func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) error {
+func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
 	i := 0
 
 	for {
-		err := stream.Send(&proto.PerformanceExecResp{
-			Msg: "Other Msg From Agent",
+		err := stream.Send(&proto.PerformanceExecResult{
+			Msg: "Hello, I am Agent",
 		})
 		if err != nil {
 			return err
@@ -23,11 +24,13 @@ func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_Ex
 		if err == io.EOF {
 			return nil
 		}
+		if res == nil {
+			continue
+		}
 
-		err = stream.Send(&proto.PerformanceExecResp{
-			Title:  res.Title,
+		err = stream.Send(&proto.PerformanceExecResult{
+			Uuid:   res.Uuid,
 			Status: "pass",
-			Result: "data",
 		})
 		if err != nil {
 			return err
@@ -35,4 +38,11 @@ func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_Ex
 
 		i++
 	}
+
+	mqData := mq.MqMsg{
+		Event: "exit",
+	}
+	mq.PubMsg(mqData)
+
+	return
 }
