@@ -39,8 +39,8 @@ func main() {
 	flagSet.Parse(os.Args[1:])
 
 	// grpc service
-	startGrpc()
-	mq.InitMq()
+	go startGrpc()
+	mq.InitAgentMq()
 
 	// start iris service
 	agent := agentServe.Init()

@@ -31,34 +31,31 @@ func (s *PerformanceTestServices) Exec(ctx iris.Context) {
 		return
 	}
 
-	go mq.SubMsg(s.DealwithResult)
+	go mq.SubServerMsg(s.DealwithResult)
 
-	for i := 1; i <= 10; i++ {
-		err = stream.Send(&proto.PerformanceExecReq{
-			Uuid:  "UUID-123",
-			Title: "Performance Testing Task UUID-123",
-			Vus:   10,
-		})
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return
-		}
+	err = stream.Send(&proto.PerformanceExecReq{
+		Uuid:  "UUID-123",
+		Title: "Performance Testing Task UUID-123",
+		Vus:   10,
+	})
+	if err != nil {
+		return
+	}
 
+	for true {
 		res, err := stream.Recv()
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
-			return
+			continue
 		}
 
 		mqData := mq.MqMsg{
 			Event:  "result",
 			Result: *res,
 		}
-		mq.PubMsg(mqData)
+		mq.PubServerMsg(mqData)
 	}
 
 	stream.CloseSend()

@@ -27,7 +27,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	mq.InitMq()
+	mq.InitServerMq()
 	serverServe.Start()
 }
 

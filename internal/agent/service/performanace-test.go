@@ -8,33 +8,36 @@ import (
 
 type PerformanceTestServices struct{}
 
-func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
+func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
+	go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
+
+	res, err := stream.Recv()
+	if err == io.EOF {
+		err = nil
+		return
+	}
+	if res == nil {
+		return
+	}
+
+	// simulate execution
 	i := 0
-
-	for {
-		err := stream.Send(&proto.PerformanceExecResult{
-			Msg: "Hello, I am Agent",
-		})
-		if err != nil {
-			return err
+	for true {
+		if i > 2 {
+			break
 		}
 
-		//
-		res, err := stream.Recv()
-		if err == io.EOF {
-			return nil
-		}
-		if res == nil {
-			continue
-		}
-
-		err = stream.Send(&proto.PerformanceExecResult{
+		result := proto.PerformanceExecResult{
 			Uuid:   res.Uuid,
 			Status: "pass",
-		})
-		if err != nil {
-			return err
 		}
+
+		//mqData := mq.MqMsg{
+		//	Event:  "result",
+		//	Result: result,
+		//}
+		//mq.PubAgentMsg(mqData)
+		err = stream.Send(&result)
 
 		i++
 	}
@@ -42,7 +45,15 @@ func (services *PerformanceTestServices) Exec(stream proto.PerformanceService_Ex
 	mqData := mq.MqMsg{
 		Event: "exit",
 	}
-	mq.PubMsg(mqData)
+	mq.PubAgentMsg(mqData)
+
+	return
+}
+
+func (s *PerformanceTestServices) ForwardResult(mqMsg mq.MqMsg, stream *proto.PerformanceService_ExecServer) (err error) {
+	result := mqMsg.Result
+
+	err = (*stream).Send(&result)
 
 	return
 }
