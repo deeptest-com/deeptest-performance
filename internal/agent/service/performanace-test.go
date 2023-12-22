@@ -3,6 +3,7 @@ package agentService
 import (
 	"context"
 	"github.com/aaronchen2k/deeptest/internal/agent/exec"
+	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
@@ -36,9 +37,10 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 			Dur:  int(plan.Vus),
 			VuNo: int(i),
 		}
-		vCtx := context.WithValue(ctx, "task", task)
+		valCtx := context.WithValue(ctx, "task", task)
+		timeoutCtx, _ := context.WithTimeout(valCtx, consts.ExecTimeout)
 
-		go exec.ExecTask(vCtx, &stream)
+		go exec.ExecTask(timeoutCtx, &stream)
 	}
 
 	time.Sleep(10 * time.Second)
