@@ -6,6 +6,7 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
+	statUtils "github.com/aaronchen2k/deeptest/internal/pkg/utils/stat"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
 	"time"
@@ -15,7 +16,9 @@ type PerformanceTestServices struct {
 }
 
 func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
-	go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
+	//go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
+
+	go statUtils.GetAll()
 
 	plan, err := stream.Recv()
 	if err == io.EOF {
