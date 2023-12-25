@@ -6,7 +6,6 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
-	statUtils "github.com/aaronchen2k/deeptest/internal/pkg/utils/stat"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
 	"time"
@@ -17,8 +16,6 @@ type PerformanceTestServices struct {
 
 func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
 	//go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
-
-	go statUtils.GetAll()
 
 	plan, err := stream.Recv()
 	if err == io.EOF {
@@ -33,6 +30,9 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 
 	ctx, cancel := context.WithCancel(context.Background())
 
+	planCtx := context.WithValue(ctx, "plan", plan)
+	go exec.Monitor(&stream, planCtx)
+
 	for i := int32(1); i <= plan.Vus; i++ {
 		task := domain.Task{
 			Uuid: plan.Uuid,
@@ -40,8 +40,8 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 			Dur:  int(plan.Vus),
 			VuNo: int(i),
 		}
-		valCtx := context.WithValue(ctx, "task", task)
-		timeoutCtx, _ := context.WithTimeout(valCtx, consts.ExecTimeout)
+		taskCtx := context.WithValue(ctx, "task", task)
+		timeoutCtx, _ := context.WithTimeout(taskCtx, consts.ExecTimeout)
 
 		go exec.ExecTask(timeoutCtx, &stream)
 	}

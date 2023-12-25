@@ -2,6 +2,7 @@ package statUtils
 
 import (
 	logUtils "github.com/aaronchen2k/deeptest/pkg/lib/log"
+	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
@@ -14,7 +15,7 @@ import (
 	"time"
 )
 
-func GetAll() *StatData {
+func GetAll(*proto.PerformanceService_ExecServer) *StatData {
 	data := new(StatData)
 
 	data.Name = GetHostName()
