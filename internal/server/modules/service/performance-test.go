@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	serverDomain "github.com/aaronchen2k/deeptest/cmd/server/v1/domain"
-	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
+	"github.com/aaronchen2k/deeptest/internal/pkg/queue"
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/kataras/iris/v12"
 	"github.com/nsqio/go-nsq"
@@ -34,7 +34,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	go mq.SubServerMsg(s.DealwithResult, cancel)
+	go queue.SubServerMsg(s.DealwithResult, cancel)
 
 	err = stream.Send(&proto.PerformanceExecReq{
 		Uuid:  req.Uuid,
@@ -103,7 +103,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 			continue
 		}
 
-		mq.PubServerMsg(*res)
+		queue.PubServerMsg(*res)
 	}
 
 	stream.CloseSend()

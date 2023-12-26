@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/aaronchen2k/deeptest/cmd/server/serverServe"
-	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
+	"github.com/aaronchen2k/deeptest/internal/pkg/queue"
 	"github.com/fatih/color"
 	"os"
 	"os/signal"
@@ -27,7 +27,7 @@ func main() {
 		os.Exit(0)
 	}()
 
-	mq.InitServerMq()
+	queue.InitServerMq()
 	serverServe.Start()
 }
 
