@@ -50,6 +50,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 		return
 	}
 
+	// use nsq to get results
 	if req.NsqServerAddress != "" {
 		go func() {
 			channel := fmt.Sprintf("channel_%s", req.Uuid)
@@ -80,7 +81,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 				return
 			}
 
-			// wait util getting stop instruction
+			// wait util getting stop instruction from mq
 			for true {
 				select {
 				case <-ctx.Done():
@@ -91,7 +92,6 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 				}
 			}
 		}()
-
 	}
 
 	for true {

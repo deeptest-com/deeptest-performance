@@ -35,10 +35,8 @@ func SubServerMsg(callback func(result proto.PerformanceExecResult) error, cance
 			mqClientServer.Unsubscribe(mqTopicServer, ch)
 			cancel()
 			break
-
 		} else {
 			callback(msg)
-
 		}
 
 		time.Sleep(time.Millisecond * 100)
