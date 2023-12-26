@@ -12,7 +12,7 @@ type PerformanceTestModule struct {
 
 func (m *PerformanceTestModule) Party() core.WebModule {
 	handler := func(index iris.Party) {
-		index.Get("/exec", m.PerformanceTestCtrl.Exec).Name = "详情"
+		index.Post("/exec", m.PerformanceTestCtrl.Exec).Name = "详情"
 	}
 
 	return core.NewModule("/performanceTest", handler)

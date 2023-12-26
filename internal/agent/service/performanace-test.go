@@ -5,7 +5,6 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/agent/exec"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
-	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
 	"time"
@@ -15,8 +14,6 @@ type PerformanceTestServices struct {
 }
 
 func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServer) (err error) {
-	//go mq.SubAgentMsgWithStream(s.ForwardResult, &stream)
-
 	plan, err := stream.Recv()
 	if err == io.EOF {
 		err = nil
@@ -35,10 +32,11 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 
 	for i := int32(1); i <= plan.Vus; i++ {
 		task := domain.Task{
-			Uuid: plan.Uuid,
-			Vus:  int(plan.Vus),
-			Dur:  int(plan.Vus),
-			VuNo: int(i),
+			Uuid:     plan.Uuid,
+			Vus:      int(plan.Vus),
+			Dur:      int(plan.Vus),
+			VuNo:     int(i),
+			Scenario: plan.Scenarios,
 
 			NsqServerAddress: plan.NsqServerAddress,
 			NsqLookupAddress: plan.NsqLookupAddress,
@@ -50,20 +48,23 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 		go exec.ExecTask(taskCtx, &stream)
 	}
 
+	// wait
 	time.Sleep(10 * time.Second)
-	cancel()
 
-	mqData := mq.MqMsg{
-		Event: "exit",
+	// 模拟结束
+	// send stop instruction
+	stopMsg := proto.PerformanceExecResult{
+		Instruction: consts.Exit.String(),
 	}
-	mq.PubAgentMsg(mqData)
+	sender := exec.NewGrpcSender(&stream)
+	sender.Send(stopMsg)
+
+	cancel()
 
 	return
 }
 
-func (s *PerformanceTestServices) ForwardResult(mqMsg mq.MqMsg, stream *proto.PerformanceService_ExecServer) (err error) {
-	result := mqMsg.Result
-
+func (s *PerformanceTestServices) ForwardResult(result proto.PerformanceExecResult, stream *proto.PerformanceService_ExecServer) (err error) {
 	err = (*stream).Send(&result)
 
 	return

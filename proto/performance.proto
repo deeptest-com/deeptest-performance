@@ -6,14 +6,25 @@ service PerformanceService {
   rpc Exec(stream PerformanceExecReq) returns (stream PerformanceExecResult){};
 }
 
+message Processor {
+  string name = 1;
+}
+
+message Scenario {
+  string name = 1;
+  repeated Processor processors = 2;
+  int32 dur       = 3;
+}
+
 message PerformanceExecReq {
   string uuid = 1;
   string title = 2;
   int32 vus = 3;
   int32 dur = 4;
+  repeated Scenario scenarios = 5;
 
-  string nsqServerAddress = 5;
-  string nsqLookupAddress = 6;
+  string nsqServerAddress = 6;
+  string nsqLookupAddress = 7;
 }
 
 message PerformanceExecResult {
@@ -23,4 +34,6 @@ message PerformanceExecResult {
   string status = 3;
   int32 duration = 4;
   string msg = 5;
+
+  string instruction = 6;
 }

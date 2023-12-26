@@ -10,7 +10,7 @@ import (
 
 const (
 	// 用于测试的消息主题
-	testTopic = "nsq_topic"
+	testTopic = "test_topic"
 
 	// nsqd 服务端地址
 	nsqdAddr = "localhost:4150"

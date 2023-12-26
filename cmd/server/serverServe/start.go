@@ -42,7 +42,6 @@ func Start() {
 }
 
 func inits() {
-	consts.RunFrom = consts.FromServer
 	consts.WorkDir = commUtils.GetWorkDir()
 
 	_i118Utils.Init(consts.Language, "")

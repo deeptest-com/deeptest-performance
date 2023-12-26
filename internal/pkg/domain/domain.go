@@ -1,21 +1,23 @@
 package domain
 
+import "github.com/aaronchen2k/deeptest/proto"
+
 type Task struct {
 	Uuid string `json:"uuid,omitempty"`
 	Vus  int    `json:"vus,omitempty"`
 	Dur  int    `json:"dur,omitempty"`
 
-	VuNo     int      `json:"vuNo,omitempty"`
-	Scenario Scenario `json:"scenario,omitempty"`
+	VuNo     int               `json:"vuNo,omitempty"`
+	Scenario []*proto.Scenario `json:"scenario,omitempty"`
 
 	NsqServerAddress string `json:"nsqServerAddress,omitempty"`
 	NsqLookupAddress string `json:"nsqLookupAddress,omitempty"`
 }
 
 type Scenario struct {
-	Name       string   `json:"name"`
-	Processors []string `json:"processors"`
-	Dur        int      `json:"dur,omitempty"`
+	Name       string           `json:"name"`
+	Processors []proto.Scenario `json:"processors"`
+	Dur        int              `json:"dur,omitempty"`
 }
 
 type Metrics struct {

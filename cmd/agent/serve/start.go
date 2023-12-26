@@ -24,7 +24,6 @@ var client *tests.Client
 
 // Init 初始化web服务
 func Init() *AgentServer {
-	consts.RunFrom = consts.FromAgent
 	consts.WorkDir = commUtils.GetWorkDir()
 
 	_i118Utils.Init(consts.Language, "")

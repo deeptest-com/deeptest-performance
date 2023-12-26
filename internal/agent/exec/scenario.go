@@ -13,14 +13,14 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 	task := valCtx.Value("task").(domain.Task)
 	log.Println(task)
 
-	for _, processorId := range task.Scenario.Processors {
-		log.Println("exec processor", processorId)
+	for _, processor := range task.Scenario[0].Processors {
+		log.Println("exec processor", processor)
 
 		// 此处为场景处理器的耗时操作
 		time.Sleep(2 * time.Second)
 
 		result := proto.PerformanceExecResult{
-			Uuid:   fmt.Sprintf("%s@%s", processorId, task.Uuid),
+			Uuid:   fmt.Sprintf("%s@%s", processor, task.Uuid),
 			Status: "pass",
 		}
 
@@ -29,7 +29,7 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 		// 每个场景处理器完成后，检测是否有终止执行的信号
 		select {
 		case <-valCtx.Done():
-			fmt.Println("stop", task.VuNo)
+			fmt.Println("exit", task.VuNo)
 
 			// 中止执行该场景后续处理器
 			return

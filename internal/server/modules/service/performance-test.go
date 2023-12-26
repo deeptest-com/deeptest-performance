@@ -2,13 +2,17 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	serverDomain "github.com/aaronchen2k/deeptest/cmd/server/v1/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/kataras/iris/v12"
+	"github.com/nsqio/go-nsq"
 	"google.golang.org/grpc"
 	"io"
 	"log"
+	"time"
 )
 
 type PerformanceTestServices struct {
@@ -29,7 +33,8 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 		return
 	}
 
-	go mq.SubServerMsg(s.DealwithResult)
+	ctx, cancel := context.WithCancel(context.Background())
+	go mq.SubServerMsg(s.DealwithResult, cancel)
 
 	err = stream.Send(&proto.PerformanceExecReq{
 		Uuid:  req.Uuid,
@@ -38,9 +43,55 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 
 		NsqServerAddress: req.NsqServerAddress,
 		NsqLookupAddress: req.NsqLookupAddress,
+
+		Scenarios: req.Scenarios,
 	})
 	if err != nil {
 		return
+	}
+
+	if req.NsqServerAddress != "" {
+		go func() {
+			channel := fmt.Sprintf("channel_%s", req.Uuid)
+			consumer, err := nsq.NewConsumer(req.Uuid, channel, nsq.NewConfig())
+			if err != nil {
+				return
+			}
+			defer consumer.Stop()
+
+			msgCallback := func(bytes []byte) error {
+				log.Println(fmt.Sprintf("receive msg: %s", bytes))
+
+				result := proto.PerformanceExecResult{}
+				json.Unmarshal(bytes, &result)
+
+				s.DealwithResult(result)
+
+				return nil
+			}
+			consumer.AddHandler(newMsgProcessor(msgCallback))
+
+			nsqAddr := req.NsqServerAddress
+			if req.NsqLookupAddress != "" {
+				nsqAddr = req.NsqLookupAddress
+			}
+			err = consumer.ConnectToNSQD(nsqAddr)
+			if err != nil {
+				return
+			}
+
+			// wait util getting stop instruction
+			for true {
+				select {
+				case <-ctx.Done():
+					return
+
+				default:
+					time.Sleep(3 * time.Second)
+				}
+			}
+		}()
+
 	}
 
 	for true {
@@ -52,11 +103,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 			continue
 		}
 
-		mqData := mq.MqMsg{
-			Event:  "result",
-			Result: *res,
-		}
-		mq.PubServerMsg(mqData)
+		mq.PubServerMsg(*res)
 	}
 
 	stream.CloseSend()
@@ -64,9 +111,7 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error)
 	return
 }
 
-func (s *PerformanceTestServices) DealwithResult(mqMsg mq.MqMsg) (err error) {
-	result := mqMsg.Result
-
+func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult) (err error) {
 	if result.Msg != "" {
 		log.Printf("Msg: %s", result.Msg)
 	} else {
@@ -74,4 +119,26 @@ func (s *PerformanceTestServices) DealwithResult(mqMsg mq.MqMsg) (err error) {
 	}
 
 	return
+}
+
+type msgProcessor struct {
+	callback func(msg []byte) error
+	cancel   context.CancelFunc
+}
+
+func newMsgProcessor(callback func(msg []byte) error) *msgProcessor {
+	return &msgProcessor{
+		callback: callback,
+	}
+}
+
+func (m *msgProcessor) HandleMessage(msg *nsq.Message) (err error) {
+	err = m.callback(msg.Body)
+	if err != nil {
+		return
+	}
+
+	msg.Finish()
+
+	return nil
 }
