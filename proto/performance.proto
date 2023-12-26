@@ -11,6 +11,9 @@ message PerformanceExecReq {
   string title = 2;
   int32 vus = 3;
   int32 dur = 4;
+
+  string nsqServerAddress = 5;
+  string nsqLookupAddress = 6;
 }
 
 message PerformanceExecResult {

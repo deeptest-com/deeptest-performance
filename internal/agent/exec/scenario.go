@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-func ExecScenario(scenario domain.Scenario, valCtx context.Context, stream *proto.PerformanceService_ExecServer) {
+func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecServer, sender MessageSender) {
 	task := valCtx.Value("task").(domain.Task)
 	log.Println(task)
 
-	for _, processorId := range scenario.Processors {
+	for _, processorId := range task.Scenario.Processors {
 		log.Println("exec processor", processorId)
 
 		// 此处为场景处理器的耗时操作

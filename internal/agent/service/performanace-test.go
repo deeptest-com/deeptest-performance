@@ -39,11 +39,15 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 			Vus:  int(plan.Vus),
 			Dur:  int(plan.Vus),
 			VuNo: int(i),
-		}
-		taskCtx := context.WithValue(ctx, "task", task)
-		timeoutCtx, _ := context.WithTimeout(taskCtx, consts.ExecTimeout)
 
-		go exec.ExecTask(timeoutCtx, &stream)
+			NsqServerAddress: plan.NsqServerAddress,
+			NsqLookupAddress: plan.NsqLookupAddress,
+		}
+
+		timeoutCtx, _ := context.WithTimeout(ctx, consts.ExecTimeout)
+		taskCtx := context.WithValue(timeoutCtx, "task", task)
+
+		go exec.ExecTask(taskCtx, &stream)
 	}
 
 	time.Sleep(10 * time.Second)

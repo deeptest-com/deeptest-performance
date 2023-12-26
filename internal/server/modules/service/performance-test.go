@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	serverDomain "github.com/aaronchen2k/deeptest/cmd/server/v1/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/mq"
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/kataras/iris/v12"
@@ -22,21 +23,21 @@ func (s *PerformanceTestServices) Connect(ctx iris.Context) {
 	s.PerformanceServiceClient = proto.NewPerformanceServiceClient(connect)
 }
 
-func (s *PerformanceTestServices) Exec(ctx iris.Context) {
+func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error) {
 	stream, err := s.PerformanceServiceClient.Exec(context.Background())
 	if err != nil {
-		ctx.JSON(map[string]string{
-			"err": err.Error(),
-		})
 		return
 	}
 
 	go mq.SubServerMsg(s.DealwithResult)
 
 	err = stream.Send(&proto.PerformanceExecReq{
-		Uuid:  "UUID123",
-		Title: "Performance Testing Task UUID-123",
-		Vus:   3,
+		Uuid:  req.Uuid,
+		Title: req.Title,
+		Vus:   int32(req.Vus),
+
+		NsqServerAddress: req.NsqServerAddress,
+		NsqLookupAddress: req.NsqLookupAddress,
 	})
 	if err != nil {
 		return

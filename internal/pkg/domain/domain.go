@@ -7,6 +7,9 @@ type Task struct {
 
 	VuNo     int      `json:"vuNo,omitempty"`
 	Scenario Scenario `json:"scenario,omitempty"`
+
+	NsqServerAddress string `json:"nsqServerAddress,omitempty"`
+	NsqLookupAddress string `json:"nsqLookupAddress,omitempty"`
 }
 
 type Scenario struct {
