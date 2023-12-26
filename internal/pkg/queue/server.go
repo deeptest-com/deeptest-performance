@@ -14,10 +14,17 @@ var (
 	queueClientOfServer *queue.Client
 )
 
-func InitServerMq() {
+func InitServerQueue() {
 	queueClientOfServer = queue.NewClient()
 	//defer queueClientOfServer.Close()
 	queueClientOfServer.SetConditions(10000000)
+}
+
+func PubServerMsg(data proto.PerformanceExecResult) {
+	err := queueClientOfServer.Publish(queueTopicOfServer, data)
+	if err != nil {
+		fmt.Println("pub mq message failed", err)
+	}
 }
 
 func SubServerMsg(callback func(result proto.PerformanceExecResult) error, cancel context.CancelFunc) {
@@ -40,12 +47,5 @@ func SubServerMsg(callback func(result proto.PerformanceExecResult) error, cance
 		}
 
 		time.Sleep(time.Millisecond * 100)
-	}
-}
-
-func PubServerMsg(data proto.PerformanceExecResult) {
-	err := queueClientOfServer.Publish(queueTopicOfServer, data)
-	if err != nil {
-		fmt.Println("pub mq message failed", err)
 	}
 }
