@@ -24,12 +24,7 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 			Status: "pass",
 		}
 
-		//mqData := mq.MqMsg{
-		//	Event:  "result",
-		//	Result: result,
-		//}
-		//mq.PubAgentMsg(mqData)
-		(*stream).Send(&result)
+		sender.Send(result)
 
 		// 每个场景处理器完成后，检测是否有终止执行的信号
 		select {
