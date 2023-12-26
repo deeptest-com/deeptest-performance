@@ -48,7 +48,7 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 		go exec.ExecTask(taskCtx, &stream)
 	}
 
-	// wait
+	// TODO: 等待所有虚拟用户执行结束
 	time.Sleep(10 * time.Second)
 
 	// 模拟结束
