@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func ExecTask(valCtx context.Context, stream *proto.PerformanceService_ExecServer) (err error) {
+func ExecTaskWithVu(valCtx context.Context, stream *proto.PerformanceService_ExecServer) (err error) {
 	task := valCtx.Value("task").(domain.Task)
 	log.Println(task)
 

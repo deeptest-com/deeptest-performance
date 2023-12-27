@@ -7,7 +7,7 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/proto"
 	"io"
-	"time"
+	"sync"
 )
 
 type PerformanceTestServices struct {
@@ -30,6 +30,8 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 	planCtx := context.WithValue(ctx, "plan", plan)
 	go exec.Monitor(&stream, planCtx)
 
+	var wg sync.WaitGroup
+
 	for i := int32(1); i <= plan.Vus; i++ {
 		task := domain.Task{
 			Uuid:     plan.Uuid,
@@ -45,11 +47,15 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 		timeoutCtx, _ := context.WithTimeout(ctx, consts.ExecTimeout)
 		taskCtx := context.WithValue(timeoutCtx, "task", task)
 
-		go exec.ExecTask(taskCtx, &stream)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			exec.ExecTaskWithVu(taskCtx, &stream)
+		}()
 	}
 
-	// TODO: 等待所有虚拟用户执行结束
-	time.Sleep(10 * time.Second)
+	// 等待所有虚拟用户执行结束
+	wg.Wait()
 
 	// 模拟结束
 	// send stop instruction

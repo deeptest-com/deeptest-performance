@@ -1,7 +1,7 @@
 package statUtils
 
 import (
-	"github.com/shirou/gopsutil/load"
+	"github.com/shirou/gopsutil/v3/load"
 )
 
 type StatData struct {

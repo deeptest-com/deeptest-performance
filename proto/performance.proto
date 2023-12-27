@@ -13,14 +13,14 @@ message Processor {
 message Scenario {
   string name = 1;
   repeated Processor processors = 2;
-  int32 dur       = 3;
+  int64 dur       = 3;
 }
 
 message PerformanceExecReq {
   string uuid = 1;
   string title = 2;
   int32 vus = 3;
-  int32 dur = 4;
+  int64 dur = 4;
   repeated Scenario scenarios = 5;
 
   string nsqServerAddress = 6;
@@ -32,7 +32,7 @@ message PerformanceExecResult {
   int32 vuId = 2;
 
   string status = 3;
-  int32 duration = 4;
+  int64 duration = 4;
   string msg = 5;
 
   string instruction = 6;
