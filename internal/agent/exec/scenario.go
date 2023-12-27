@@ -31,7 +31,7 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 		// 每个场景处理器完成后，检测是否有终止执行的信号
 		select {
 		case <-valCtx.Done():
-			fmt.Println("exit scenario by signal", task.VuNo)
+			fmt.Println("exit left scenario processors by signal", task.VuNo)
 
 			// 中止执行该场景后续处理器
 			goto Label_END_SCENARIO

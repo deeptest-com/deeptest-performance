@@ -61,6 +61,7 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 	// send stop instruction
 	stopMsg := proto.PerformanceExecResult{
 		Instruction: consts.Exit.String(),
+		Msg:         "exit test",
 	}
 	sender := exec.NewGrpcSender(&stream)
 	sender.Send(stopMsg)
