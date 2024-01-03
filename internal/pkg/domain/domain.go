@@ -3,9 +3,9 @@ package domain
 import "github.com/aaronchen2k/deeptest/proto"
 
 type Task struct {
-	Uuid string `json:"uuid,omitempty"`
-	Vus  int    `json:"vus,omitempty"`
-	Dur  int    `json:"dur,omitempty"`
+	Uuid   string         `json:"uuid,omitempty"`
+	Stages []*proto.Stage `json:"stages"`
+	Dur    int            `json:"dur,omitempty"`
 
 	VuNo     int               `json:"vuNo,omitempty"`
 	Scenario []*proto.Scenario `json:"scenario,omitempty"`

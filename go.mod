@@ -21,7 +21,9 @@ require (
 	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.60.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
+)
 
+require (
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/CloudyKit/fastprinter v0.0.0-20200109182630-33d98a066a53 // indirect
 	github.com/CloudyKit/jet/v6 v6.2.0 // indirect
@@ -63,6 +65,7 @@ require (
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
 	github.com/iris-contrib/schema v0.0.6 // indirect
+	github.com/jinzhu/copier v0.4.0 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kataras/blocks v0.0.7 // indirect

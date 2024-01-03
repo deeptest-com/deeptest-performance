@@ -16,15 +16,23 @@ message Scenario {
   int64 dur       = 3;
 }
 
+message Stage {
+  int32 dur  = 1;
+  int32 target = 2;
+}
+
 message PerformanceExecReq {
   string uuid = 1;
   string title = 2;
-  int32 vus = 3;
-  int64 dur = 4;
-  repeated Scenario scenarios = 5;
 
-  string nsqServerAddress = 6;
-  string nsqLookupAddress = 7;
+  string generateType = 3;
+  repeated Stage stages = 4;
+
+  int64 dur = 5;
+  repeated Scenario scenarios = 6;
+
+  string nsqServerAddress = 7;
+  string nsqLookupAddress = 8;
 }
 
 message PerformanceExecResult {

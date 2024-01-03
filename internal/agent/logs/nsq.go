@@ -1,4 +1,4 @@
-package exec
+package logs
 
 import (
 	"encoding/json"
@@ -6,20 +6,12 @@ import (
 	"github.com/nsqio/go-nsq"
 )
 
-type MessageSender interface {
-	Send(result proto.PerformanceExecResult) error
-}
-
 type NsqSender struct {
 	NsqServerAddress string
 	NsqLookupAddress string
 
 	Topic    string
 	producer *nsq.Producer
-}
-
-type GrpcSender struct {
-	Stream *proto.PerformanceService_ExecServer
 }
 
 func NewNsqSender(topic string, nsqServerAddress, nsqLookupAddress string) MessageSender {
@@ -42,15 +34,9 @@ func NewNsqSender(topic string, nsqServerAddress, nsqLookupAddress string) Messa
 	return ret
 }
 
-func NewGrpcSender(stream *proto.PerformanceService_ExecServer) MessageSender {
-	ret := GrpcSender{
-		Stream: stream,
-	}
-
-	return ret
-}
-
 func (s NsqSender) Send(result proto.PerformanceExecResult) (err error) {
+	Count(result)
+
 	bytes, err := json.Marshal(result)
 	if err != nil {
 		return err
@@ -60,18 +46,6 @@ func (s NsqSender) Send(result proto.PerformanceExecResult) (err error) {
 	if err != nil {
 		return err
 	}
-
-	return
-}
-
-func (s GrpcSender) Send(result proto.PerformanceExecResult) (err error) {
-	//mqData := mq.MqMsg{
-	//	Event:  "result",
-	//	Result: result,
-	//}
-	//mq.PubAgentMsg(mqData)
-
-	(*s.Stream).Send(&result)
 
 	return
 }
