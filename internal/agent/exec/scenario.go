@@ -13,8 +13,6 @@ import (
 )
 
 func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecServer, sender logs.MessageSender) {
-	startTime := time.Now()
-
 	task := valCtx.Value("task").(domain.Task)
 
 	for index, processor := range task.Scenario[0].Processors {
@@ -33,10 +31,16 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 			status = "fail"
 		}
 
-		result := proto.PerformanceExecResult{
+		record := proto.PerformanceExecRecord{
 			Uuid:     fmt.Sprintf("%s@%s", processor.Name, task.Uuid),
 			Duration: int64(duration), // 毫秒
 			Status:   status,
+		}
+		summary := logs.GetSummary()
+
+		result := proto.PerformanceExecResult{
+			Record:  &record,
+			Summary: &summary,
 		}
 
 		sender.Send(result)
@@ -57,13 +61,12 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 
 Label_END_SCENARIO:
 
-	endTime := time.Now()
+	summary := logs.GetSummary()
 
 	result := proto.PerformanceExecResult{
-		Uuid:     fmt.Sprintf("scenario_%s", task.Uuid),
-		Status:   "pass",
-		Duration: endTime.Unix() - startTime.Unix(),
+		Summary: &summary,
 	}
+
 	sender.Send(result)
 
 	return

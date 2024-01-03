@@ -5,16 +5,27 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	"github.com/aaronchen2k/deeptest/proto"
+	"github.com/jinzhu/copier"
 	"time"
 )
 
+func GetSummary() (summary proto.PerformanceExecSummary) {
+	data := store.GetData()
+
+	copier.CopyWithOption(&summary, data, copier.Option{
+		DeepCopy: true,
+	})
+
+	return
+}
+
 func Count(result proto.PerformanceExecResult) (err error) {
-	status := consts.ResultStatus(result.Status)
+	status := consts.ResultStatus(result.Record.Status)
 
 	// deal with request
 	request := domain.RequestItem{
 		Status: status,
-		Dur:    int(result.Duration),
+		Dur:    int(result.Record.Duration),
 	}
 	store.AddRequests(request)
 
@@ -35,7 +46,7 @@ func Count(result proto.PerformanceExecResult) (err error) {
 	store.UpdateDuration(duration) // 毫秒
 
 	// count average duration
-	avgDuration := computeAvgDuration(result.Duration)
+	avgDuration := computeAvgDuration(result.Record.Duration)
 	store.UpdateAvgDuration(avgDuration)
 
 	// count average qps, must put after all other actions

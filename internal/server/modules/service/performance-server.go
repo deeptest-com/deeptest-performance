@@ -139,11 +139,7 @@ func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecRes
 		return
 	}
 
-	if result.Msg != "" {
-		log.Printf("Msg: %s", result.Msg)
-	} else {
-		log.Printf("Result %s: %s", result.Uuid, result.Status)
-	}
+	log.Println(result)
 
 	return
 }

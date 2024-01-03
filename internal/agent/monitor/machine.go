@@ -21,8 +21,9 @@ func Monitor(stream *proto.PerformanceService_ExecServer, valCtx context.Context
 		data := statUtils.GetAll(stream)
 
 		result := proto.PerformanceExecResult{
-			Uuid: fmt.Sprintf("%s", plan.Uuid),
-			Msg:  fmt.Sprintf("cpu usaged: %.2f%%", data.CpuUsage),
+			Metrics: &proto.PerformanceExecMetrics{
+				CpuUsage: data.CpuUsage,
+			},
 		}
 
 		(*stream).Send(&result)

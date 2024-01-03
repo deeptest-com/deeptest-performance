@@ -11,7 +11,6 @@ import (
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/jinzhu/copier"
 	"io"
-	"log"
 	"sync"
 )
 
@@ -58,18 +57,19 @@ func (s *PerformanceTestServices) Exec(stream proto.PerformanceService_ExecServe
 
 	// 模拟结束
 	// send stop instruction
+	data := store.GetData()
+	summary := proto.PerformanceExecSummary{}
+	copier.CopyWithOption(&summary, data, copier.Option{
+		DeepCopy: true,
+	})
+
 	stopMsg := proto.PerformanceExecResult{
-		Instruction: consts.Exit.String(),
-		Msg:         "exit test",
+		Summary: &summary,
 	}
 	sender := logs.NewGrpcSender(&stream)
 	sender.Send(stopMsg)
 
 	cancel()
-
-	// print summary
-	data := store.GetData()
-	log.Println(data)
 
 	return
 }

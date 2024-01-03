@@ -35,13 +35,70 @@ message PerformanceExecReq {
   string nsqLookupAddress = 8;
 }
 
-message PerformanceExecResult {
+message CpuAvgStat {
+  double Load1 = 1;
+  double Load5 = 2;
+  double Load15 = 3;
+}
+
+message Disk  {
+  uint64  Total = 1;
+  uint64   Free = 2;
+  uint64   Used = 3;
+  double   UsedPercent = 4;
+}
+message Memory  {
+  uint64 Total = 1;
+  uint64 Used = 2;
+  uint64 Free = 3;
+  double  UsedPercent = 4;
+}
+
+message Network  {
+  string Name = 1;
+  uint64  BytesSent = 2;
+  uint64  BytesRecv = 3;
+  uint64   PacketsSent = 4;
+  uint64  PacketsRecv = 5;
+}
+
+message PerformanceExecMetrics {
+  string Name = 1;
+  string Ip = 2;
+  double CpuUsage = 3;
+  CpuAvgStat  CpuLoad = 4;
+  map<string, Memory> MemInfo = 5;
+  repeated Network Networks = 6;
+  repeated Disk DiskInfos = 7;
+  int32 MaxGoroutines = 8;
+  int32 CurrentGoroutines = 9;
+  int32 ServerType = 10;
+}
+message PerformanceExecRecord {
   string uuid = 1;
   int32 vuId = 2;
 
   string status = 3;
   int64 duration = 4;
   string msg = 5;
+}
+message PerformanceExecSummary {
+  int64 StartTime = 1;
+  int64 EndTime    = 2;
+  int64 Duration = 3;
 
-  string instruction = 6;
+  int32 Pass = 4;
+  int32 Fail = 5;
+  int32 Error = 6;
+
+  int32 AvgQps = 7;
+  int32 AvgDuration = 8;
+}
+
+message PerformanceExecResult {
+  string instruction = 1;
+
+  PerformanceExecRecord record = 2;
+  PerformanceExecSummary summary = 3;
+  PerformanceExecMetrics metrics = 4;
 }
