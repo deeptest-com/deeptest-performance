@@ -25,7 +25,7 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 			log.Println(bytes, err)
 		}
 
-		duration := _intUtils.GenRandNum(100, 1000)
+		duration := _intUtils.GenRandNum(100, 2000)
 		time.Sleep(time.Duration(duration) * time.Millisecond)
 
 		status := "pass"
@@ -35,7 +35,7 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 
 		result := proto.PerformanceExecResult{
 			Uuid:     fmt.Sprintf("%s@%s", processor.Name, task.Uuid),
-			Duration: int64(duration),
+			Duration: int64(duration), // 毫秒
 			Status:   status,
 		}
 

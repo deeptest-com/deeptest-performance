@@ -27,9 +27,12 @@ func Count(result proto.PerformanceExecResult) (err error) {
 		store.AddError(1)
 	}
 
-	currTime := time.Now().Unix()
+	currTime := time.Now().UnixMilli()
+	startTime := store.GetStartTime()
 	store.UpdateEndTime(currTime)
-	store.UpdateDuration(currTime - store.GetStartTime())
+
+	duration := currTime - startTime
+	store.UpdateDuration(duration) // 毫秒
 
 	// count average duration
 	avgDuration := computeAvgDuration(result.Duration)
@@ -46,8 +49,8 @@ func computeAvgDuration(requestDur int64) (ret int) {
 	requestNum := len(store.GetRequests())
 	oldVal := store.GetAvgDuration()
 
-	newVal := (oldVal*requestNum+int(requestDur))/requestNum + 1
-	store.UpdateAvgDuration(newVal)
+	ret = (oldVal*requestNum+int(requestDur))/requestNum + 1
+	store.UpdateAvgDuration(ret)
 
 	return
 }
@@ -57,10 +60,9 @@ func computeAvgQps() (ret int) {
 
 	duration := store.GetDuration()
 
-	secs := duration / 1000
-	qps := successNum / secs
+	ret = successNum * 1000 / int(duration)
 
-	store.UpdateAvgDuration(qps)
+	store.UpdateAvgQps(ret)
 
 	return
 }

@@ -77,7 +77,9 @@ func (s *PerformanceTestServices) SendExecReqToAgent(req serverDomain.PlanExecRe
 	err = stream.Send(&proto.PerformanceExecReq{
 		Uuid:  req.Uuid,
 		Title: req.Title,
-		Vus:   int32(req.Vus),
+
+		GenerateType: req.GenerateType.String(),
+		Stages:       req.Stages,
 
 		NsqServerAddress: req.NsqServerAddress,
 		NsqLookupAddress: req.NsqLookupAddress,

@@ -6,6 +6,7 @@ import (
 	"github.com/aaronchen2k/deeptest/cmd/agent/v1"
 	agentService "github.com/aaronchen2k/deeptest/internal/agent/service"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
+	zapLog "github.com/aaronchen2k/deeptest/internal/pkg/log"
 	"github.com/aaronchen2k/deeptest/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/lib/log"
 	"github.com/aaronchen2k/deeptest/proto"
@@ -36,6 +37,8 @@ func main() {
 	flagSet.IntVar(&consts.Port, "p", 0, "")
 	flagSet.BoolVar(&_consts.Verbose, "verbose", false, "")
 	flagSet.Parse(os.Args[1:])
+
+	zapLog.Init()
 
 	// grpc service
 	go startGrpc()

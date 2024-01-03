@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/aaronchen2k/deeptest/cmd/server/serverServe"
+	zapLog "github.com/aaronchen2k/deeptest/internal/pkg/log"
 	"github.com/aaronchen2k/deeptest/internal/pkg/queue"
 	"github.com/fatih/color"
 	"os"
@@ -26,6 +27,8 @@ func main() {
 		cleanup()
 		os.Exit(0)
 	}()
+
+	zapLog.Init()
 
 	queue.InitServerQueue()
 	serverServe.Start()

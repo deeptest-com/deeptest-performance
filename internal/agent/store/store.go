@@ -8,15 +8,15 @@ import (
 
 const (
 	keyStartTime = "startTime"
-	keyEndTime   = "keyEndTime"
-	keyDuration  = "keyAvgDuration"
+	keyEndTime   = "endTime"
+	keyDuration  = "duration"
 
 	keyPassCount  = "pass"
 	keyFailCount  = "fail"
 	keyErrorCount = "error"
 
-	keyAvgQps      = "qps"
-	keyAvgDuration = "duration"
+	keyAvgQps      = "avgQps"
+	keyAvgDuration = "avgDuration"
 
 	keyRequests = "requests"
 )
@@ -26,8 +26,8 @@ var (
 )
 
 func Init() {
-	UpdateStartTime(time.Now().Unix())
-	UpdateEndTime(time.Now().Unix())
+	UpdateStartTime(time.Now().UnixMilli())
+	UpdateEndTime(time.Now().UnixMilli())
 	UpdateDuration(0)
 
 	UpdateRequests([]domain.RequestItem{})
@@ -40,9 +40,12 @@ func Init() {
 }
 
 func GetData() (ret domain.Stat) {
+	ret.StartTime = GetStartTime()
+	ret.EndTime = GetEndTime()
+	ret.Duration = GetDuration()
+
 	ret.Requests = GetRequests()
 
-	ret.Pass = GetPass()
 	ret.Pass = GetPass()
 	ret.Fail = GetFail()
 	ret.Error = GetError()
@@ -70,10 +73,10 @@ func GetEndTime() (ret int64) {
 
 	return
 }
-func GetDuration() (ret int) {
+func GetDuration() (ret int64) {
 	val, ok := summary.Load(keyDuration)
 	if ok {
-		ret = val.(int)
+		ret = val.(int64)
 	}
 
 	return
