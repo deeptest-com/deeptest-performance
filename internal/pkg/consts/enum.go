@@ -18,6 +18,7 @@ type Instruction string
 
 const (
 	Exit   Instruction = "exit"
+	Record Instruction = "record"
 	Result Instruction = "result"
 )
 

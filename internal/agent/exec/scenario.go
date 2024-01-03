@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/aaronchen2k/deeptest/internal/agent/logs"
+	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/domain"
 	_httpUtils "github.com/aaronchen2k/deeptest/pkg/lib/http"
 	_intUtils "github.com/aaronchen2k/deeptest/pkg/lib/int"
@@ -39,8 +40,9 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 		summary := logs.GetSummary()
 
 		result := proto.PerformanceExecResult{
-			Record:  &record,
-			Summary: &summary,
+			Instruction: consts.Record.String(),
+			Record:      &record,
+			Summary:     &summary,
 		}
 
 		sender.Send(result)
@@ -64,7 +66,8 @@ Label_END_SCENARIO:
 	summary := logs.GetSummary()
 
 	result := proto.PerformanceExecResult{
-		Summary: &summary,
+		Instruction: consts.Result.String(),
+		Summary:     &summary,
 	}
 
 	sender.Send(result)
