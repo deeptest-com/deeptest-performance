@@ -34,7 +34,7 @@ func Start() {
 	idleConnClosed := make(chan struct{})
 	irisApp := createIrisApp(&idleConnClosed)
 
-	websocketHelper.InitMq()
+	websocketHelper.InitWsMq()
 	initWebSocket(irisApp)
 
 	server := &WebServer{

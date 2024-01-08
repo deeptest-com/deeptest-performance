@@ -41,7 +41,7 @@ func (c *WebSocketCtrl) OnNamespaceConnected(wsMsg websocket.Message) error {
 	resp := _domain.WsResp{Msg: "from server: connected to websocket"}
 	bytes, _ := json.Marshal(resp)
 	mqData := _domain.MqMsg{Namespace: wsMsg.Namespace, Room: wsMsg.Room, Event: wsMsg.Event, Content: string(bytes)}
-	websocketHelper.PubMsg(mqData)
+	websocketHelper.PubWsMsg(mqData)
 
 	return nil
 }
@@ -55,7 +55,7 @@ func (c *WebSocketCtrl) OnNamespaceDisconnect(wsMsg websocket.Message) error {
 	resp := _domain.WsResp{Msg: "from server: disconnected to websocket"}
 	bytes, _ := json.Marshal(resp)
 	mqData := _domain.MqMsg{Namespace: wsMsg.Namespace, Room: wsMsg.Room, Event: wsMsg.Event, Content: string(bytes)}
-	websocketHelper.PubMsg(mqData)
+	websocketHelper.PubWsMsg(mqData)
 
 	return nil
 }

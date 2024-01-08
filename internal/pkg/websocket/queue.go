@@ -12,15 +12,15 @@ var (
 	queueClientOfWebSocket *queue.Client
 )
 
-func InitMq() {
+func InitWsMq() {
 	queueClientOfWebSocket = queue.NewClient()
 	//defer queueClientOfWebSocket.Close()
 	queueClientOfWebSocket.SetConditions(10000)
 
-	go SubMsg()
+	go SubWsMsg()
 }
 
-func SubMsg() {
+func SubWsMsg() {
 	ch, err := queueClientOfWebSocket.Subscribe(queueTopicOfWebSocket)
 	if err != nil {
 		fmt.Printf("sub mq topic %s failed\n", queueTopicOfWebSocket)
@@ -42,7 +42,7 @@ func SubMsg() {
 	}
 }
 
-func PubMsg(data _domain.MqMsg) {
+func PubWsMsg(data _domain.MqMsg) {
 	err := queueClientOfWebSocket.Publish(queueTopicOfWebSocket, data)
 	if err != nil {
 		fmt.Println("pub mq message failed")

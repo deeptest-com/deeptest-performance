@@ -7,6 +7,7 @@ import (
 	serverDomain "github.com/aaronchen2k/deeptest/cmd/server/v1/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/queue"
+	websocketHelper "github.com/aaronchen2k/deeptest/internal/pkg/websocket"
 	"github.com/aaronchen2k/deeptest/proto"
 	"github.com/kataras/iris/v12/websocket"
 	"github.com/nsqio/go-nsq"
@@ -35,10 +36,10 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq, wsMsg *webs
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	if req.NsqServerAddress == "" {
-		go queue.SubMsg(s.DealwithResult, cancel)
-	} else {
-		go s.HandleNsqMsg(req, ctx)
+	if req.NsqServerAddress == "" { // use grpc msgs in queue
+		go queue.SubServerMsg(s.DealwithResult, cancel)
+	} else { // use mq msgs from nsq
+		go s.HandleNsqMsg(req, ctx, wsMsg)
 	}
 
 	// send exec request to agent
@@ -64,7 +65,7 @@ func (s *PerformanceTestServices) HandleAndForwardGrpcMsg(stream proto.Performan
 			continue
 		}
 
-		queue.PubMsg(*res)
+		queue.PubServerMsg(*res)
 	}
 
 	return
@@ -94,15 +95,16 @@ func (s *PerformanceTestServices) SendExecReqToAgent(req serverDomain.PlanExecRe
 	return
 }
 
-func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx context.Context) (err error) {
+func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx context.Context, wsMsg *websocket.Message) (err error) {
 	channel := fmt.Sprintf("channel_%s", req.Uuid)
 	consumer, err := nsq.NewConsumer(req.Uuid, channel, nsq.NewConfig())
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 	defer consumer.Stop()
 
-	consumer.AddHandler(newNsqMsgProcessor(s.NsqMsgCallback))
+	consumer.AddHandler(newNsqMsgProcessor(s.NsqMsgCallback, wsMsg))
 
 	nsqAddr := req.NsqServerAddress
 	if req.NsqLookupAddress != "" {
@@ -157,11 +159,13 @@ func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecRes
 type NsqMsgProcessor struct {
 	callback func(msg []byte) error
 	cancel   context.CancelFunc
+	wsMsg    *websocket.Message
 }
 
-func newNsqMsgProcessor(callback func(msg []byte) error) *NsqMsgProcessor {
+func newNsqMsgProcessor(callback func(msg []byte) error, wsMsg *websocket.Message) *NsqMsgProcessor {
 	return &NsqMsgProcessor{
 		callback: callback,
+		wsMsg:    wsMsg,
 	}
 }
 
@@ -170,6 +174,11 @@ func (m *NsqMsgProcessor) HandleMessage(msg *nsq.Message) (err error) {
 	if err != nil {
 		return
 	}
+
+	// TODO: prepare the data to forward to web client
+	obj := proto.PerformanceExecResult{}
+	json.Unmarshal(msg.Body, &obj)
+	websocketHelper.SendExecResult(obj, m.wsMsg)
 
 	msg.Finish()
 
