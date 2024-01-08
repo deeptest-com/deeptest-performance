@@ -20,6 +20,10 @@ func GetSummary() (summary proto.PerformanceExecSummary) {
 }
 
 func Count(result proto.PerformanceExecResult) (err error) {
+	if result.Record == nil {
+		return
+	}
+
 	status := consts.ResultStatus(result.Record.Status)
 
 	// deal with request

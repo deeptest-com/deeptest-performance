@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	serverDomain "github.com/aaronchen2k/deeptest/cmd/server/v1/domain"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	websocketHelper "github.com/aaronchen2k/deeptest/internal/pkg/websocket"
 	"github.com/aaronchen2k/deeptest/internal/server/modules/service"
@@ -64,6 +65,21 @@ func (c *WebSocketCtrl) OnChat(wsMsg websocket.Message) (err error) {
 	ctx := websocket.GetContext(c.Conn)
 
 	_logUtils.Infof("WebSocket OnChat: remote address=%s, room=%s, msg=%s", ctx.RemoteAddr(), wsMsg.Room, string(wsMsg.Body))
+
+	req := serverDomain.WsReq{}
+	err = json.Unmarshal(wsMsg.Body, &req)
+	if err != nil {
+		websocketHelper.SendExecMsg(_i118Utils.Sprintf("exec_fail"), err, consts.Processor, &wsMsg)
+		return
+	}
+
+	if req.Act == consts.Init {
+		return
+	}
+
+	if req.Act == consts.ExecPlan {
+		err = c.PerformanceTestServices.Exec(req.PlanExecReq, &wsMsg)
+	}
 
 	return
 }

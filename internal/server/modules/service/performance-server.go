@@ -8,7 +8,7 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/internal/pkg/queue"
 	"github.com/aaronchen2k/deeptest/proto"
-	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/websocket"
 	"github.com/nsqio/go-nsq"
 	"google.golang.org/grpc"
 	"io"
@@ -20,7 +20,7 @@ type PerformanceTestServices struct {
 	PerformanceServiceClient proto.PerformanceServiceClient
 }
 
-func (s *PerformanceTestServices) Connect(ctx iris.Context) {
+func (s *PerformanceTestServices) Connect() {
 	connect, err := grpc.Dial("127.0.0.1:9528", grpc.WithInsecure())
 	if err != nil {
 		log.Fatalln(err)
@@ -28,7 +28,11 @@ func (s *PerformanceTestServices) Connect(ctx iris.Context) {
 	s.PerformanceServiceClient = proto.NewPerformanceServiceClient(connect)
 }
 
-func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq) (err error) {
+func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq, wsMsg *websocket.Message) (err error) {
+	if s.PerformanceServiceClient == nil {
+		s.Connect()
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if req.NsqServerAddress == "" {

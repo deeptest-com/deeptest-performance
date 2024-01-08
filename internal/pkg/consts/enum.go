@@ -64,3 +64,16 @@ const (
 func (e WsMsgCategory) String() string {
 	return string(e)
 }
+
+type ExecType string
+
+const (
+	ExecStop ExecType = "stop"
+
+	Init     ExecType = "init"
+	ExecPlan ExecType = "execPlan"
+)
+
+func (e ExecType) String() string {
+	return string(e)
+}
