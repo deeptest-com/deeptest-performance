@@ -4,11 +4,16 @@ import (
 	stdContext "context"
 	"fmt"
 	v1 "github.com/aaronchen2k/deeptest/cmd/server/v1"
+	"github.com/aaronchen2k/deeptest/cmd/server/v1/handler"
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	middleware "github.com/aaronchen2k/deeptest/internal/pkg/core"
 	commUtils "github.com/aaronchen2k/deeptest/internal/pkg/utils"
+	websocketHelper "github.com/aaronchen2k/deeptest/internal/pkg/websocket"
+	"github.com/aaronchen2k/deeptest/internal/server/modules/service"
 	_i118Utils "github.com/aaronchen2k/deeptest/pkg/lib/i118"
 	"github.com/facebookgo/inject"
+	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/websocket"
 	"github.com/sirupsen/logrus"
 	"time"
 
@@ -28,6 +33,9 @@ func Start() {
 
 	idleConnClosed := make(chan struct{})
 	irisApp := createIrisApp(&idleConnClosed)
+
+	websocketHelper.InitMq()
+	initWebSocket(irisApp)
 
 	server := &WebServer{
 		app:               irisApp,
@@ -62,6 +70,40 @@ func createIrisApp(idleConnClosed *chan struct{}) (irisApp *iris.Application) {
 	})
 
 	return
+}
+
+func initWebSocket(irisApp *iris.Application) {
+	websocketCtrl := handler.NewWebsocketCtrl()
+	injectWebsocketModule(websocketCtrl)
+
+	mvc.New(irisApp)
+
+	websocketAPI := irisApp.Party(consts.WsPathServer)
+	m := mvc.New(websocketAPI)
+	m.Register(
+		&service.PrefixedLogger{Prefix: ""},
+	)
+	m.HandleWebsocket(websocketCtrl)
+	websocketServer := websocket.New(
+		middleware.DefaultUpgrader,
+		m)
+
+	websocketAPI.Get("/", websocket.Handler(websocketServer))
+}
+
+func injectWebsocketModule(websocketCtrl *handler.WebSocketCtrl) {
+	var g inject.Graph
+	g.Logger = logrus.StandardLogger()
+
+	if err := g.Provide(
+		&inject.Object{Value: websocketCtrl},
+	); err != nil {
+		logrus.Fatalf("provide usecase objects to the Graph: %v", err)
+	}
+	err := g.Populate()
+	if err != nil {
+		logrus.Fatalf("populate the incomplete Objects: %v", err)
+	}
 }
 
 func (webServer *WebServer) Start() {

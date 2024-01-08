@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/aaronchen2k/deeptest/proto"
+import (
+	"github.com/aaronchen2k/deeptest/proto"
+)
 
 type Task struct {
 	Uuid   string         `json:"uuid,omitempty"`

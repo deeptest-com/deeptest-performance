@@ -2,13 +2,14 @@ package consts
 
 var (
 	Language = "zh"
-	Verbose  = true
+
+	Sender  string
+	Port    int
+	Verbose = true
 
 	IsRelease bool
 	ExecDir   string
 	WorkDir   string
-
-	Port int
 
 	FolderTmp = "tmp"
 	HomeDir   = ""

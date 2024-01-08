@@ -34,6 +34,7 @@ var (
 
 func main() {
 	flagSet = flag.NewFlagSet("deeptest", flag.ContinueOnError)
+	flagSet.StringVar(&consts.Sender, "s", "", "")
 	flagSet.IntVar(&consts.Port, "p", 0, "")
 	flagSet.BoolVar(&_consts.Verbose, "verbose", false, "")
 	flagSet.Parse(os.Args[1:])

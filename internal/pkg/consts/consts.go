@@ -6,7 +6,12 @@ const (
 	App = "deeptest"
 
 	ApiPathServer = "/api/v1"
+	WsPathServer  = ApiPathServer + "/ws"
 	ApiPathAgent  = "/api/v1"
+
+	WsDefaultNamespace = "default"
+	WsDefaultRoom      = "default_room"
+	WsChatEvent        = "OnChat"
 
 	SupportEmail = "chenqi@deeptest.com"
 

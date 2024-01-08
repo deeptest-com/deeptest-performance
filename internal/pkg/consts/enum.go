@@ -48,3 +48,19 @@ const (
 func (e TargetType) String() string {
 	return string(e)
 }
+
+type WsMsgCategory string
+
+const (
+	ProgressInProgress WsMsgCategory = "in_progress"
+	ProgressEnd        WsMsgCategory = "end"
+	ProgressResult     WsMsgCategory = "result"
+	Processor          WsMsgCategory = "processor"
+	Initialize         WsMsgCategory = "initialize"
+	Statistic          WsMsgCategory = "stat"
+	Exception          WsMsgCategory = "exception"
+)
+
+func (e WsMsgCategory) String() string {
+	return string(e)
+}
