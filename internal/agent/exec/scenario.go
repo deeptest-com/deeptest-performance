@@ -20,8 +20,10 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 		log.Println("exec processor", processor)
 
 		{
-			bytes, err := _httpUtils.Get("http://111.231.16.35:9000/get")
-			log.Println(bytes, err)
+			_, err := _httpUtils.Get("http://111.231.16.35:9000/get")
+			if err != nil {
+				log.Println("http request failed", err)
+			}
 		}
 
 		duration := _intUtils.GenRandNum(100, 2000)
