@@ -19,7 +19,7 @@ func (c *PerformanceTestCtrl) Exec(ctx iris.Context) {
 		return
 	}
 
-	c.PerformanceTestServices.Exec(req, nil)
+	c.PerformanceTestServices.ExecStart(req, nil)
 
 	data := iris.Map{}
 	ctx.JSON(_domain.Response{Code: _domain.NoErr.Code, Data: data, Msg: _domain.NoErr.Msg})

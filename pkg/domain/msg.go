@@ -6,10 +6,10 @@ import (
 )
 
 type WsResp struct {
-	Msg       string               `json:"msg"`
-	IsRunning string               `json:"isRunning,omitempty"`
-	Category  consts.WsMsgCategory `json:"category"`
+	Uuid     string               `json:"uuid"`
+	Category consts.WsMsgCategory `json:"category"`
 
+	Msg  string      `json:"msg"`
 	Info iris.Map    `json:"info,omitempty"`
 	Data interface{} `json:"data,omitempty"`
 }

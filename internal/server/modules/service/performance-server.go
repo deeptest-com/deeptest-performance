@@ -18,6 +18,9 @@ import (
 )
 
 type PerformanceTestServices struct {
+	execCtx    context.Context
+	execCancel context.CancelFunc
+
 	PerformanceServiceClient proto.PerformanceServiceClient
 }
 
@@ -29,17 +32,25 @@ func (s *PerformanceTestServices) Connect() {
 	s.PerformanceServiceClient = proto.NewPerformanceServiceClient(connect)
 }
 
-func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq, wsMsg *websocket.Message) (err error) {
+func (s *PerformanceTestServices) ExecStart(req serverDomain.PlanExecReq, wsMsg *websocket.Message) (err error) {
 	if s.PerformanceServiceClient == nil {
 		s.Connect()
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	s.execCtx, s.execCancel = context.WithCancel(context.Background())
 
-	if req.NsqServerAddress == "" { // agent send logs via grpc, server store msgs in queue
-		go queue.SubServerMsg(s.DealwithResult, cancel, wsMsg)
-	} else { // agent send logs via nsq MQ
-		go s.HandleNsqMsg(req, ctx, wsMsg)
+	// stop execution in 2 ways:
+	// 1. call cancel in this method by websocket client
+	// 2. sub cancel instruction from agent via grpc
+
+	if req.NsqServerAddress != "" { // agent send logs via nsq MQ
+		// check ctx.Done
+		go s.HandleNsqMsg(req, s.execCtx, wsMsg)
+
+	} else { // agent send logs via grpc, server store msgs in queue
+		// check ctx.Done
+		// may cancel ctx by instruction from agent
+		go queue.SubGrpcMsg(s.DealwithResult, s.execCtx, s.execCancel, wsMsg)
 	}
 
 	// send exec request to agent
@@ -55,6 +66,16 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq, wsMsg *webs
 	return
 }
 
+func (s *PerformanceTestServices) ExecStop(req serverDomain.PlanExecReq, wsMsg *websocket.Message) (err error) {
+	if s.execCancel != nil {
+		s.execCancel()
+	}
+
+	websocketHelper.SendExecMsg("", "", consts.ProgressTerminate, req.Uuid, wsMsg)
+
+	return
+}
+
 func (s *PerformanceTestServices) HandleAndForwardGrpcMsg(stream proto.PerformanceService_ExecClient) (err error) {
 	for true {
 		res, err := stream.Recv()
@@ -65,7 +86,7 @@ func (s *PerformanceTestServices) HandleAndForwardGrpcMsg(stream proto.Performan
 			continue
 		}
 
-		queue.PubServerMsg(*res)
+		queue.PubGrpcMsg(*res)
 	}
 
 	return
@@ -115,7 +136,6 @@ func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx
 		return
 	}
 
-	// wait util getting stop instruction from mq
 	for true {
 		select {
 		case <-ctx.Done():

@@ -21,15 +21,14 @@ func InitServerQueue() {
 	queueClientOfServer.SetConditions(10000000)
 }
 
-func PubServerMsg(data proto.PerformanceExecResult) {
+func PubGrpcMsg(data proto.PerformanceExecResult) {
 	err := queueClientOfServer.Publish(queueTopicOfServer, data)
 	if err != nil {
 		fmt.Println("pub mq message failed", err)
 	}
 }
 
-func SubServerMsg(callback func(result proto.PerformanceExecResult, wsMsg *websocket.Message) error,
-	cancel context.CancelFunc, wsMsg *websocket.Message) {
+func SubGrpcMsg(callback func(proto.PerformanceExecResult, *websocket.Message) error, ctx context.Context, cancel context.CancelFunc, wsMsg *websocket.Message) {
 
 	ch, err := queueClientOfServer.Subscribe(queueTopicOfServer)
 	if err != nil {
@@ -47,6 +46,15 @@ func SubServerMsg(callback func(result proto.PerformanceExecResult, wsMsg *webso
 			break
 		} else {
 			callback(msg, wsMsg)
+		}
+
+		for true {
+			select {
+			case <-ctx.Done():
+				return
+
+			default:
+			}
 		}
 
 		time.Sleep(time.Millisecond * 100)

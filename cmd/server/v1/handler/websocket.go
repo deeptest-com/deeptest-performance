@@ -69,7 +69,7 @@ func (c *WebSocketCtrl) OnChat(wsMsg websocket.Message) (err error) {
 	req := serverDomain.WsReq{}
 	err = json.Unmarshal(wsMsg.Body, &req)
 	if err != nil {
-		websocketHelper.SendExecMsg(_i118Utils.Sprintf("exec_fail"), err, consts.Processor, &wsMsg)
+		websocketHelper.SendExecMsg("exec failed", err, "performance testing", "NO_UUID", &wsMsg)
 		return
 	}
 
@@ -78,7 +78,11 @@ func (c *WebSocketCtrl) OnChat(wsMsg websocket.Message) (err error) {
 	}
 
 	if req.Act == consts.ExecPlan {
-		err = c.PerformanceTestServices.Exec(req.PlanExecReq, &wsMsg)
+		err = c.PerformanceTestServices.ExecStart(req.PlanExecReq, &wsMsg)
+
+	} else if req.Act == consts.ExecStop {
+		err = c.PerformanceTestServices.ExecStop(req.PlanExecReq, &wsMsg)
+
 	}
 
 	return

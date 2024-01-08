@@ -52,13 +52,10 @@ func (e TargetType) String() string {
 type WsMsgCategory string
 
 const (
-	ProgressInProgress WsMsgCategory = "in_progress"
-	ProgressEnd        WsMsgCategory = "end"
-	ProgressResult     WsMsgCategory = "result"
-	Processor          WsMsgCategory = "processor"
-	Initialize         WsMsgCategory = "initialize"
-	Statistic          WsMsgCategory = "stat"
-	Exception          WsMsgCategory = "exception"
+	ProgressResult    WsMsgCategory = "result"
+	ProgressTerminate WsMsgCategory = "terminate"
+	ProgressMsg       WsMsgCategory = "msg"
+	ProgressData      WsMsgCategory = "data"
 )
 
 func (e WsMsgCategory) String() string {
