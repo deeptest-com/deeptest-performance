@@ -6,6 +6,7 @@ import (
 	"github.com/aaronchen2k/deeptest/internal/pkg/consts"
 	"github.com/aaronchen2k/deeptest/pkg/core/queue"
 	"github.com/aaronchen2k/deeptest/proto"
+	"github.com/kataras/iris/v12/websocket"
 	"time"
 )
 
@@ -27,7 +28,9 @@ func PubServerMsg(data proto.PerformanceExecResult) {
 	}
 }
 
-func SubServerMsg(callback func(result proto.PerformanceExecResult) error, cancel context.CancelFunc) {
+func SubServerMsg(callback func(result proto.PerformanceExecResult, wsMsg *websocket.Message) error,
+	cancel context.CancelFunc, wsMsg *websocket.Message) {
+
 	ch, err := queueClientOfServer.Subscribe(queueTopicOfServer)
 	if err != nil {
 		fmt.Printf("sub mq topic %s failed, err: %s\n", queueTopicOfServer, err.Error())
@@ -36,14 +39,14 @@ func SubServerMsg(callback func(result proto.PerformanceExecResult) error, cance
 
 	for {
 		msg := queueClientOfServer.GetPayLoad(ch).(proto.PerformanceExecResult)
-		fmt.Printf("get mq msg [%s]%s\n", queueTopicOfServer, msg.Instruction)
+		fmt.Printf("get queue msg [%s]%s\n", queueTopicOfServer, msg.Instruction)
 
 		if msg.Instruction == consts.Exit.String() {
 			queueClientOfServer.Unsubscribe(queueTopicOfServer, ch)
 			cancel()
 			break
 		} else {
-			callback(msg)
+			callback(msg, wsMsg)
 		}
 
 		time.Sleep(time.Millisecond * 100)

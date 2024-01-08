@@ -36,9 +36,9 @@ func (s *PerformanceTestServices) Exec(req serverDomain.PlanExecReq, wsMsg *webs
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	if req.NsqServerAddress == "" { // use grpc msgs in queue
-		go queue.SubServerMsg(s.DealwithResult, cancel)
-	} else { // use mq msgs from nsq
+	if req.NsqServerAddress == "" { // agent send logs via grpc, server store msgs in queue
+		go queue.SubServerMsg(s.DealwithResult, cancel, wsMsg)
+	} else { // agent send logs via nsq MQ
 		go s.HandleNsqMsg(req, ctx, wsMsg)
 	}
 
@@ -104,7 +104,7 @@ func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx
 	}
 	defer consumer.Stop()
 
-	consumer.AddHandler(newNsqMsgProcessor(s.NsqMsgCallback, wsMsg))
+	consumer.AddHandler(newNsqMsgProcessor(s.nsqMsgCallback, wsMsg))
 
 	nsqAddr := req.NsqServerAddress
 	if req.NsqLookupAddress != "" {
@@ -129,18 +129,18 @@ func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx
 	return nil
 }
 
-func (s *PerformanceTestServices) NsqMsgCallback(bytes []byte) error {
+func (s *PerformanceTestServices) nsqMsgCallback(bytes []byte, wsMsg *websocket.Message) error {
 	log.Println(fmt.Sprintf("receive msg: %s", bytes))
 
 	result := proto.PerformanceExecResult{}
 	json.Unmarshal(bytes, &result)
 
-	s.DealwithResult(result)
+	s.DealwithResult(result, wsMsg)
 
 	return nil
 }
 
-func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult) (err error) {
+func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult, wsMsg *websocket.Message) (err error) {
 	if result.Instruction != consts.Result.String() {
 		return
 	}
@@ -153,16 +153,21 @@ func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecRes
 		}
 	}
 
+	if wsMsg != nil {
+		// TODO: prepare the data to forward to web client
+		websocketHelper.SendExecResult(result, wsMsg)
+	}
+
 	return
 }
 
 type NsqMsgProcessor struct {
-	callback func(msg []byte) error
+	callback func(msg []byte, wsMsg *websocket.Message) error
 	cancel   context.CancelFunc
 	wsMsg    *websocket.Message
 }
 
-func newNsqMsgProcessor(callback func(msg []byte) error, wsMsg *websocket.Message) *NsqMsgProcessor {
+func newNsqMsgProcessor(callback func(msg []byte, wsMsg *websocket.Message) error, wsMsg *websocket.Message) *NsqMsgProcessor {
 	return &NsqMsgProcessor{
 		callback: callback,
 		wsMsg:    wsMsg,
@@ -170,15 +175,10 @@ func newNsqMsgProcessor(callback func(msg []byte) error, wsMsg *websocket.Messag
 }
 
 func (m *NsqMsgProcessor) HandleMessage(msg *nsq.Message) (err error) {
-	err = m.callback(msg.Body)
+	err = m.callback(msg.Body, m.wsMsg)
 	if err != nil {
 		return
 	}
-
-	// TODO: prepare the data to forward to web client
-	obj := proto.PerformanceExecResult{}
-	json.Unmarshal(msg.Body, &obj)
-	websocketHelper.SendExecResult(obj, m.wsMsg)
 
 	msg.Finish()
 
