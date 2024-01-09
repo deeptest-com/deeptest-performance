@@ -25,8 +25,10 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 			}
 		}
 
-		duration := _intUtils.GenRandNum(100, 2000)
-		time.Sleep(time.Duration(duration) * time.Millisecond)
+		dur := _intUtils.GenRandNum(1, 600)
+
+		duration := index*1000 + _intUtils.GenRandNum(1, 600)
+		time.Sleep(time.Duration(dur) * time.Millisecond)
 
 		status := "pass"
 		if index%3 == 0 {

@@ -17,7 +17,7 @@ func GenerateConstant(tmplTask domain.Task, stages []*proto.Stage, stream proto.
 	}
 
 	for i := int32(1); i <= stages[0].Target; i++ {
-		task := genTask(tmplTask, int(i))
+		task := genTask(tmplTask, int(i), stages[0].Dur)
 
 		timeoutCtx, _ := context.WithTimeout(planCtx, consts.ExecTimeout)
 		taskCtx := context.WithValue(timeoutCtx, "task", task)

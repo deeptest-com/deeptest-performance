@@ -25,7 +25,7 @@ func GenerateRamp(tmplTask domain.Task, stages []*proto.Stage, stream proto.Perf
 		startTime := time.Now().Unix()
 
 		for j := int32(1); j <= stage.Target; j++ {
-			task := genTask(tmplTask, index)
+			task := genTask(tmplTask, index, 0)
 
 			timeoutCtx, _ := context.WithTimeout(planCtx, consts.ExecTimeout)
 			taskCtx := context.WithValue(timeoutCtx, "task", task)

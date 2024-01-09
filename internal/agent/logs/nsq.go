@@ -6,6 +6,10 @@ import (
 	"github.com/nsqio/go-nsq"
 )
 
+var (
+	Instant *NsqSender
+)
+
 type NsqSender struct {
 	NsqServerAddress string
 	NsqLookupAddress string
@@ -14,8 +18,12 @@ type NsqSender struct {
 	producer *nsq.Producer
 }
 
-func NewNsqSender(topic string, nsqServerAddress, nsqLookupAddress string) MessageSender {
-	ret := NsqSender{
+func GetNsqSenderInstant(topic string, nsqServerAddress, nsqLookupAddress string) MessageSender {
+	if Instant != nil && Instant.producer != nil {
+		return Instant
+	}
+
+	Instant = &NsqSender{
 		NsqServerAddress: nsqServerAddress,
 		NsqLookupAddress: nsqLookupAddress,
 
@@ -24,14 +32,14 @@ func NewNsqSender(topic string, nsqServerAddress, nsqLookupAddress string) Messa
 
 	var err error
 
-	if ret.producer == nil {
-		ret.producer, err = nsq.NewProducer(nsqServerAddress, nsq.NewConfig())
+	if Instant.producer == nil {
+		Instant.producer, err = nsq.NewProducer(nsqServerAddress, nsq.NewConfig())
 		if err != nil {
 			return nil
 		}
 	}
 
-	return ret
+	return Instant
 }
 
 func (s NsqSender) Send(result proto.PerformanceExecResult) (err error) {
