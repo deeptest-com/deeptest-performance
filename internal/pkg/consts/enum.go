@@ -14,15 +14,37 @@ func (e ResultStatus) String() string {
 	return string(e)
 }
 
-type Instruction string
+type MsgCategory string
 
 const (
-	Exit   Instruction = "exit"
-	Record Instruction = "record"
-	Result Instruction = "result"
+	MsgCategoryInstruction MsgCategory = "instruction"
+	MsgCategoryResult      MsgCategory = "result"
 )
 
-func (e Instruction) String() string {
+func (e MsgCategory) String() string {
+	return string(e)
+}
+
+type MsgInstruction string
+
+const (
+	MsgInstructionStart    MsgInstruction = "start"
+	MsgInstructionEnd      MsgInstruction = "end"
+	MsgInstructionTerminal MsgInstruction = "terminal"
+)
+
+func (e MsgInstruction) String() string {
+	return string(e)
+}
+
+type MsgResult string
+
+const (
+	MsgResultRecord  MsgResult = "record"
+	MsgResultSummary MsgResult = "summary"
+)
+
+func (e MsgResult) String() string {
 	return string(e)
 }
 
@@ -46,23 +68,6 @@ const (
 )
 
 func (e TargetType) String() string {
-	return string(e)
-}
-
-type WsMsgCategory string
-
-const (
-	ProgressStart     WsMsgCategory = "start"
-	ProgressEnd       WsMsgCategory = "end"
-	ProgressTerminate WsMsgCategory = "terminate"
-	ProgressMetrics   WsMsgCategory = "metrics"
-	ProgressResult    WsMsgCategory = "result"
-
-	ProgressMsg  WsMsgCategory = "msg"
-	ProgressData WsMsgCategory = "data"
-)
-
-func (e WsMsgCategory) String() string {
 	return string(e)
 }
 

@@ -45,12 +45,12 @@ func (s *PerformanceTestServices) ExecStart(req serverDomain.PlanExecReq, wsMsg 
 
 	if req.NsqServerAddress != "" { // agent send logs via nsq MQ
 		// check ctx.Done
-		go s.HandleNsqMsg(req, s.execCtx, wsMsg)
+		go s.HandleAgentNsqMsg(req, s.execCtx, wsMsg)
 
 	} else { // agent send logs via grpc, server store msgs in queue
 		// check ctx.Done
 		// may cancel ctx by instruction from agent
-		go queue.SubGrpcMsg(s.DealwithResult, s.execCtx, s.execCancel, wsMsg)
+		go queue.SubAgentGrpcMsg(s.DealwithResult, s.execCtx, s.execCancel, wsMsg)
 	}
 
 	// send exec request to agent
@@ -71,7 +71,7 @@ func (s *PerformanceTestServices) ExecStop(req serverDomain.PlanExecReq, wsMsg *
 		s.execCancel()
 	}
 
-	websocketHelper.SendExecMsg("", "", consts.ProgressTerminate, req.Uuid, wsMsg)
+	websocketHelper.SendExecInstructionToClient("", "", consts.MsgInstructionEnd, req.Uuid, wsMsg)
 
 	return
 }
@@ -116,7 +116,7 @@ func (s *PerformanceTestServices) SendExecReqToAgent(req serverDomain.PlanExecRe
 	return
 }
 
-func (s *PerformanceTestServices) HandleNsqMsg(req serverDomain.PlanExecReq, ctx context.Context, wsMsg *websocket.Message) (err error) {
+func (s *PerformanceTestServices) HandleAgentNsqMsg(req serverDomain.PlanExecReq, ctx context.Context, wsMsg *websocket.Message) (err error) {
 	channel := fmt.Sprintf("channel_%s", req.Uuid)
 	consumer, err := nsq.NewConsumer(req.Uuid, channel, nsq.NewConfig())
 	if err != nil {
@@ -161,7 +161,7 @@ func (s *PerformanceTestServices) nsqMsgCallback(bytes []byte, wsMsg *websocket.
 }
 
 func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult, wsMsg *websocket.Message) (err error) {
-	if result.Instruction != consts.Result.String() {
+	if result.Instruction != "" { // only dealwith results msg, agent will send Instruction via grpc
 		return
 	}
 
@@ -174,8 +174,7 @@ func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecRes
 	}
 
 	if wsMsg != nil {
-		// TODO: prepare the data to forward to web client
-		websocketHelper.SendExecResult(result, wsMsg)
+		websocketHelper.SendExecResultToClient(result, consts.MsgResultRecord, wsMsg)
 	}
 
 	return

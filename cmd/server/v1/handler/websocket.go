@@ -69,7 +69,7 @@ func (c *WebSocketCtrl) OnChat(wsMsg websocket.Message) (err error) {
 	req := serverDomain.WsReq{}
 	err = json.Unmarshal(wsMsg.Body, &req)
 	if err != nil {
-		websocketHelper.SendExecMsg("exec failed", err, "performance testing", "NO_UUID", &wsMsg)
+		websocketHelper.SendExecInstructionToClient("exec failed", err, consts.MsgInstructionEnd, "NO_UUID", &wsMsg)
 		return
 	}
 

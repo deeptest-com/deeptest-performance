@@ -77,10 +77,11 @@ message PerformanceExecMetrics {
 message PerformanceExecRecord {
   string uuid = 1;
   int32 vuId = 2;
+  int32 interfaceId = 3;
 
-  string status = 3;
-  int64 duration = 4;
-  string msg = 5;
+  string status = 4;
+  int64 duration = 5;
+  string msg = 6;
 }
 message PerformanceExecSummary {
   int64 StartTime = 1;

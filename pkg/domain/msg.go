@@ -6,8 +6,10 @@ import (
 )
 
 type WsResp struct {
-	Uuid     string               `json:"uuid"`
-	Category consts.WsMsgCategory `json:"category"`
+	Uuid            string                `json:"uuid"`
+	Category        consts.MsgCategory    `json:"category"`
+	InstructionType consts.MsgInstruction `json:"instructionType"`
+	ResultType      consts.MsgResult      `json:"resultType"`
 
 	Msg  string      `json:"msg"`
 	Info iris.Map    `json:"info,omitempty"`
