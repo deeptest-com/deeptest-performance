@@ -43,8 +43,9 @@ func SendExecInstructionToClient(msg string, data interface{}, instructionType c
 	}
 }
 
-func SendExecResultToClient(data interface{}, resultType consts.MsgResult, wsMsg *websocket.Message) {
+func SendExecResultToClient(data interface{}, resultType consts.MsgResult, execUUid string, wsMsg *websocket.Message) {
 	resp := _domain.WsResp{
+		Uuid:       execUUid,
 		Category:   consts.MsgCategoryResult,
 		ResultType: resultType,
 		Data:       data,
@@ -55,7 +56,12 @@ func SendExecResultToClient(data interface{}, resultType consts.MsgResult, wsMsg
 	bytes, _ := json.Marshal(resp)
 
 	if wsMsg != nil {
-		mqData := _domain.MqMsg{Namespace: wsMsg.Namespace, Room: wsMsg.Room, Event: wsMsg.Event, Content: string(bytes)}
+		mqData := _domain.MqMsg{
+			Namespace: wsMsg.Namespace,
+			Room:      wsMsg.Room,
+			Event:     wsMsg.Event,
+			Content:   string(bytes),
+		}
 		logUtils.Infof(_i118Utils.Sprintf("ws_send_exec_msg", wsMsg.Room, consts.MsgCategoryResult))
 
 		PubWsMsg(mqData)

@@ -7,7 +7,8 @@ service PerformanceService {
 }
 
 message Processor {
-  string name = 1;
+  int32 id = 1;
+  string name = 2;
 }
 
 message Scenario {
@@ -75,13 +76,15 @@ message PerformanceExecMetrics {
   int32 ServerType = 10;
 }
 message PerformanceExecRecord {
-  string uuid = 1;
-  int32 vuId = 2;
-  int32 interfaceId = 3;
+  int32 recordId = 1;
+  string recordName = 2;
+  int32 vuId = 3;
+  int32 interfaceId = 4;
 
-  string status = 4;
-  int64 duration = 5;
-  string msg = 6;
+  string status = 5;
+  int64 duration = 6;
+  string msg = 7;
+  int64 timestamp = 8;
 }
 message PerformanceExecSummary {
   int64 StartTime = 1;
@@ -98,8 +101,9 @@ message PerformanceExecSummary {
 
 message PerformanceExecResult {
   string instruction = 1;
+  string execUUid = 2;
 
-  PerformanceExecRecord record = 2;
-  PerformanceExecSummary summary = 3;
-  PerformanceExecMetrics metrics = 4;
+  PerformanceExecRecord record = 3;
+  PerformanceExecSummary summary = 4;
+  PerformanceExecMetrics metrics = 5;
 }

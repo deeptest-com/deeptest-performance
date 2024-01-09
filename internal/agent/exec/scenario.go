@@ -34,9 +34,12 @@ func ExecScenario(valCtx context.Context, stream *proto.PerformanceService_ExecS
 		}
 
 		record := proto.PerformanceExecRecord{
-			Uuid:     fmt.Sprintf("%s@%s", processor.Name, task.Uuid),
-			Duration: int64(duration), // 毫秒
-			Status:   status,
+			RecordId:   processor.Id,
+			RecordName: processor.Name,
+
+			Duration:  int64(duration), // 毫秒
+			Status:    status,
+			Timestamp: time.Now().UnixMilli(),
 		}
 		summary := logs.GetSummary()
 

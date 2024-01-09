@@ -28,8 +28,8 @@ func PubGrpcMsg(data proto.PerformanceExecResult) {
 	}
 }
 
-func SubAgentGrpcMsg(callback func(proto.PerformanceExecResult, *websocket.Message) error,
-	ctx context.Context, cancel context.CancelFunc, wsMsg *websocket.Message) {
+func SubAgentGrpcMsg(callback func(proto.PerformanceExecResult, string, *websocket.Message) error,
+	ctx context.Context, cancel context.CancelFunc, execUuid string, wsMsg *websocket.Message) {
 
 	ch, err := queueClientOfServer.Subscribe(queueTopicOfServer)
 	if err != nil {
@@ -47,7 +47,7 @@ func SubAgentGrpcMsg(callback func(proto.PerformanceExecResult, *websocket.Messa
 			break
 
 		} else {
-			callback(msg, wsMsg)
+			callback(msg, execUuid, wsMsg)
 		}
 
 		for true {

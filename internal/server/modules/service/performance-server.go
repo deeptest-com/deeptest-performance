@@ -45,12 +45,12 @@ func (s *PerformanceTestServices) ExecStart(req serverDomain.PlanExecReq, wsMsg 
 
 	if req.NsqServerAddress != "" { // agent send logs via nsq MQ
 		// check ctx.Done
-		go s.HandleAgentNsqMsg(req, s.execCtx, wsMsg)
+		go s.HandleAgentNsqMsg(req, s.execCtx, req.Uuid, wsMsg)
 
 	} else { // agent send logs via grpc, server store msgs in queue
 		// check ctx.Done
 		// may cancel ctx by instruction from agent
-		go queue.SubAgentGrpcMsg(s.DealwithResult, s.execCtx, s.execCancel, wsMsg)
+		go queue.SubAgentGrpcMsg(s.DealwithResult, s.execCtx, s.execCancel, req.Uuid, wsMsg)
 	}
 
 	// send exec request to agent
@@ -116,7 +116,9 @@ func (s *PerformanceTestServices) SendExecReqToAgent(req serverDomain.PlanExecRe
 	return
 }
 
-func (s *PerformanceTestServices) HandleAgentNsqMsg(req serverDomain.PlanExecReq, ctx context.Context, wsMsg *websocket.Message) (err error) {
+func (s *PerformanceTestServices) HandleAgentNsqMsg(req serverDomain.PlanExecReq, ctx context.Context,
+	uuid string, wsMsg *websocket.Message) (err error) {
+
 	channel := fmt.Sprintf("channel_%s", req.Uuid)
 	consumer, err := nsq.NewConsumer(req.Uuid, channel, nsq.NewConfig())
 	if err != nil {
@@ -125,7 +127,7 @@ func (s *PerformanceTestServices) HandleAgentNsqMsg(req serverDomain.PlanExecReq
 	}
 	defer consumer.Stop()
 
-	consumer.AddHandler(newNsqMsgProcessor(s.nsqMsgCallback, wsMsg))
+	consumer.AddHandler(newNsqMsgProcessor(s.nsqMsgCallback, req.Uuid, wsMsg))
 
 	nsqAddr := req.NsqServerAddress
 	if req.NsqLookupAddress != "" {
@@ -149,18 +151,20 @@ func (s *PerformanceTestServices) HandleAgentNsqMsg(req serverDomain.PlanExecReq
 	return nil
 }
 
-func (s *PerformanceTestServices) nsqMsgCallback(bytes []byte, wsMsg *websocket.Message) error {
+func (s *PerformanceTestServices) nsqMsgCallback(bytes []byte, execUUid string, wsMsg *websocket.Message) error {
 	log.Println(fmt.Sprintf("receive msg: %s", bytes))
 
 	result := proto.PerformanceExecResult{}
 	json.Unmarshal(bytes, &result)
 
-	s.DealwithResult(result, wsMsg)
+	result.ExecUUid = execUUid
+
+	s.DealwithResult(result, execUUid, wsMsg)
 
 	return nil
 }
 
-func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult, wsMsg *websocket.Message) (err error) {
+func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecResult, execUUid string, wsMsg *websocket.Message) (err error) {
 	if result.Instruction != "" { // only dealwith results msg, agent will send Instruction via grpc
 		return
 	}
@@ -169,32 +173,34 @@ func (s *PerformanceTestServices) DealwithResult(result proto.PerformanceExecRes
 		if result.Record.Msg != "" {
 			log.Printf("Msg: %s", result.Record.Msg)
 		} else {
-			log.Printf("Result %s: %s", result.Record.Uuid, result.Record.Status)
+			log.Printf("Result %d: %s", result.Record.RecordId, result.Record.Status)
 		}
 	}
 
 	if wsMsg != nil {
-		websocketHelper.SendExecResultToClient(result, consts.MsgResultRecord, wsMsg)
+		websocketHelper.SendExecResultToClient(result, consts.MsgResultRecord, execUUid, wsMsg)
 	}
 
 	return
 }
 
 type NsqMsgProcessor struct {
-	callback func(msg []byte, wsMsg *websocket.Message) error
+	callback func(msg []byte, execUUid string, wsMsg *websocket.Message) error
 	cancel   context.CancelFunc
+	execUuid string
 	wsMsg    *websocket.Message
 }
 
-func newNsqMsgProcessor(callback func(msg []byte, wsMsg *websocket.Message) error, wsMsg *websocket.Message) *NsqMsgProcessor {
+func newNsqMsgProcessor(callback func(msg []byte, execUUid string, wsMsg *websocket.Message) error, execUUid string, wsMsg *websocket.Message) *NsqMsgProcessor {
 	return &NsqMsgProcessor{
+		execUuid: execUUid,
 		callback: callback,
 		wsMsg:    wsMsg,
 	}
 }
 
 func (m *NsqMsgProcessor) HandleMessage(msg *nsq.Message) (err error) {
-	err = m.callback(msg.Body, m.wsMsg)
+	err = m.callback(msg.Body, m.execUuid, m.wsMsg)
 	if err != nil {
 		return
 	}
